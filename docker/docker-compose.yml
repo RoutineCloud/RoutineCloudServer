@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: routine-cloud-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./routine_cloud.db
+      - SECRET_KEY=${SECRET_KEY:-default_secret_key_for_development}
+      - DEBUG=False
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - CORS_ORIGINS=http://localhost,http://127.0.0.1
+    volumes:
+      - backend_data:/app/data
+    networks:
+      - routine-cloud-network
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    container_name: routine-cloud-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - routine-cloud-network
+
+networks:
+  routine-cloud-network:
+    driver: bridge
+
+volumes:
+  backend_data:
