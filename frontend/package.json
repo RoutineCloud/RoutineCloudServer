@@ -12,6 +12,9 @@
 
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.6.0",
+    "@fortawesome/free-solid-svg-icons": "^6.6.0",
+    "@fortawesome/vue-fontawesome": "^3.0.8",
     "axios": "^1.4.0",
     "pinia": "^2.1.6",
     "vue": "^3.3.4",

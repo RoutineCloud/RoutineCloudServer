@@ -1,7 +1,6 @@
-import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
-import { Routines } from '@/api'
-import type { RoutineRead, RoutineCreate, RoutineTaskAdd, TaskInRoutineRead } from '@/api'
+import {defineStore} from 'pinia'
+import {computed, ref} from 'vue'
+import {RoutineCreate, RoutineRead, Routines, RoutineTaskAdd, RoutineUpdate, TaskInRoutineRead} from '@/api'
 
 export const useRoutinesStore = defineStore('routines', () => {
   // State
@@ -49,14 +48,11 @@ export const useRoutinesStore = defineStore('routines', () => {
     return withTasks
   }
 
-  // Note: No backend endpoint for updating routine fields yet; return current state
-  async function update(id: number, _patch: Partial<RoutineRead>) {
-    console.warn('Routine update not supported by API; fetching latest instead.')
-    const { data } = await Routines.routinesGet({ path: { routine_id: id } })
+  async function update(id: number, patch: RoutineUpdate) {
+    const { data } = await Routines.routinesUpdate({ path: { routine_id: id }, body: patch })
     const idx = routines.value.findIndex(x => x.id === id)
-    const updated: RoutineRead = { ...data, tasks: data.tasks ?? routines.value[idx]?.tasks }
-    if (idx !== -1) routines.value[idx] = updated
-    return updated
+    if (idx !== -1) routines.value[idx] = data
+    return data
   }
 
   async function remove(id: number) {

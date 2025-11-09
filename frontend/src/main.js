@@ -9,6 +9,14 @@ import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
+// Font Awesome (Vue plugin)
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+// Register all solid icons
+library.add(fas)
+
 // Create Pinia instance
 const pinia = createPinia()
 
@@ -22,7 +30,9 @@ const vuetify = createVuetify({
 })
 
 // Create and mount the Vue application
-createApp(App)
+const app = createApp(App)
+app.component('font-awesome-icon', FontAwesomeIcon)
+app
   .use(pinia)
   .use(router)
   .use(vuetify)

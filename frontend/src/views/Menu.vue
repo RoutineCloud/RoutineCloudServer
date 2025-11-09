@@ -16,8 +16,8 @@ const logout = () => {
       <v-spacer></v-spacer>
       <v-btn to="/" text>Home</v-btn>
       <v-btn to="/about" text>About</v-btn>
-      <v-btn to="/routines" text>Routines</v-btn>
-      <v-btn to="/tasks" text>Tasks</v-btn>
+      <v-btn v-if="userStore.isAuthenticated" to="/routines" text>Routines</v-btn>
+      <v-btn v-if="userStore.isAuthenticated" to="/tasks" text>Tasks</v-btn>
 
       <v-btn v-if="!userStore.isAuthenticated" to="/login" text>Login</v-btn>
       <div v-if="userStore.isAuthenticated">
