@@ -202,6 +202,20 @@ export type RoutineTaskAdd = {
 };
 
 /**
+ * RoutineUpdate
+ */
+export type RoutineUpdate = {
+    /**
+     * Name
+     */
+    name?: string | null;
+    /**
+     * Description
+     */
+    description?: string | null;
+};
+
+/**
  * TaskCreate
  */
 export type TaskCreate = {
@@ -947,6 +961,36 @@ export type RoutinesGetResponses = {
 };
 
 export type RoutinesGetResponse = RoutinesGetResponses[keyof RoutinesGetResponses];
+
+export type RoutinesUpdateData = {
+    body: RoutineUpdate;
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}';
+};
+
+export type RoutinesUpdateErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RoutinesUpdateError = RoutinesUpdateErrors[keyof RoutinesUpdateErrors];
+
+export type RoutinesUpdateResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineRead;
+};
+
+export type RoutinesUpdateResponse = RoutinesUpdateResponses[keyof RoutinesUpdateResponses];
 
 export type RoutinesTasksListData = {
     body?: never;

@@ -1,73 +1,112 @@
 <script setup lang="ts">
 import {computed, ref, watch} from 'vue'
+import {useTasksStore} from '@/stores/tasks'
+import IconSelector from '@/components/IconSelector.vue'
+import {TaskRead} from '@/api'
 
-interface Instance { id?: string; taskId: string; minutesOverride?: number | null; note?: string }
 
 const props = defineProps<{
-  mode: 'global' | 'instance'
-  task?: Task
-  instance?: Instance
-  baseMinutes?: number
+  task?: TaskRead
 }>()
 
-const emit = defineEmits<{
-  (e: 'save-global', patch: Partial<Task>): void
-  (e: 'update-instance', patch: Partial<Instance>): void
-}>()
+const tasksStore = useTasksStore()
 
-// Local form state
+// Local editable state initialized from the task
 const name = ref('')
-const defaultMinutes = ref<number | null>(null)
 const icon = ref('')
-const description = ref('')
+const minutes = ref<number>(0)
+const seconds = ref<number>(0)
 
-const minutesOverride = ref<number | null>(null)
-const note = ref('')
-
-watch(() => props.task, (t) => {
-  if (props.mode === 'global' && t) {
-    name.value = t.name
-    defaultMinutes.value = t.defaultMinutes
-    icon.value = t.icon || ''
-    description.value = t.description || ''
+function initFromTask(t?: TaskRead | null) {
+  if (!t) {
+    name.value = ''
+    minutes.value = 0
+    seconds.value = 0
+    icon.value = ''
+    return
   }
-}, { immediate: true })
+  name.value = t.name ?? ''
+  icon.value = t.icon_name ?? ''
+  const d = t.duration ?? 0
+  minutes.value = Math.floor(d / 60)
+  seconds.value = d % 60
+}
 
-watch(() => props.instance, (i) => {
-  if (props.mode === 'instance' && i) {
-    minutesOverride.value = i.minutesOverride ?? null
-    note.value = i.note || ''
-  }
-}, { immediate: true })
+watch(() => props.task, (t) => initFromTask(t), { immediate: true })
 
-const effectiveMinutes = computed(() => {
-  if (props.mode !== 'instance') return null
-  const base = props.baseMinutes ?? 0
-  return minutesOverride.value != null ? minutesOverride.value : base
+// Clamp seconds to [0,59]
+function normalizeTime() {
+  if (seconds.value < 0) seconds.value = 0
+  if (seconds.value > 59) seconds.value = 59
+  if (minutes.value < 0) minutes.value = 0
+}
+
+const totalSeconds = computed(() => {
+  normalizeTime()
+  return (minutes.value * 60) + (seconds.value || 0)
 })
+
+const canSave = computed(() => !!props.task && name.value.trim().length > 0)
+
+async function save() {
+  if (!props.task) return
+  try {
+    await tasksStore.update(props.task.id, {
+      name: name.value.trim(),
+      duration: totalSeconds.value,
+      icon_name: icon.value,
+    })
+  } catch (e) {
+    console.error('Failed to save task:', e)
+  }
+}
 </script>
 
 <template>
   <div>
-    <template v-if="mode==='global'">
-      <h3 class="text-h6 mb-3">Task</h3>
-      <v-text-field v-model="name" label="Name" class="mb-2" />
-      <v-text-field v-model.number="defaultMinutes" type="number" label="Default minutes" class="mb-2" />
-      <v-text-field v-model="icon" label="Icon (mdi-*)" class="mb-2" />
-      <v-textarea v-model="description" label="Description" rows="4" />
-      <div class="mt-3 d-flex" style="gap: 8px">
-        <v-btn color="primary" @click="emit('save-global', { name, defaultMinutes: Number(defaultMinutes), icon, description })">Save</v-btn>
+    <div v-if="props.task">
+      <div class="d-flex align-center mb-4" style="gap: 12px">
+        <IconSelector v-model="icon" label="Icon" />
+        <v-text-field
+          v-model="name"
+          label="Name"
+          variant="outlined"
+          density="compact"
+          hide-details
+          style="max-width: 360px"
+        />
       </div>
-    </template>
 
-    <template v-else>
-      <h3 class="text-h6 mb-3">Task Instance</h3>
-      <v-text-field v-model.number="minutesOverride" type="number" label="Minutes override (optional)" class="mb-2" clearable />
-      <div class="text-medium-emphasis mb-2">Effective minutes: {{ effectiveMinutes }}<span v-if="baseMinutes != null"> (base {{ baseMinutes }}m)</span></div>
-      <v-textarea v-model="note" label="Note" rows="4" />
-      <div class="mt-3 d-flex" style="gap: 8px">
-        <v-btn color="primary" @click="emit('update-instance', { minutesOverride: minutesOverride!=null?Number(minutesOverride):null, note })">Save</v-btn>
+      <div class="mt-2">
+        <div class="text-subtitle-2 mb-1">Time</div>
+        <div class="d-flex align-center" style="gap: 8px">
+          <v-text-field
+            v-model.number="minutes"
+            type="number"
+            min="0"
+            label="Minutes"
+            variant="outlined"
+            density="compact"
+            hide-details
+            style="width: 140px"
+          />
+          <v-text-field
+            v-model.number="seconds"
+            type="number"
+            min="0"
+            max="59"
+            label="Seconds"
+            variant="outlined"
+            density="compact"
+            hide-details
+            style="width: 140px"
+          />
+        </div>
       </div>
-    </template>
+      <div class="mt-4 d-flex" style="gap: 8px">
+        <v-btn color="primary" :disabled="!canSave" @click="save">Save</v-btn>
+      </div>
+    </div>
+    <div v-else class="text-medium-emphasis">No task selected.</div>
   </div>
 </template>

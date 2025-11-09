@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
+import {TaskRead} from "@/api";
 
-interface Task { id: string; name: string; defaultMinutes: number; icon?: string }
+const props = defineProps<{ tasks: TaskRead[];}>()
+const emit = defineEmits<{
+  (e: 'select', id: number): void;
+  (e: 'delete', id: number): void;
+  (e: 'create'): void
+}>()
 
-const props = defineProps<{ tasks: Task[]; modelValue?: string }>()
-const emit = defineEmits<{ (e: 'update:modelValue', id: string): void; (e: 'select', id: string): void; (e: 'delete', id: string): void; (e: 'create'): void }>()
+const selected_task_id = defineModel<number>()
 
 const q = ref('')
 const filtered = computed(() => {
@@ -13,8 +18,8 @@ const filtered = computed(() => {
   return props.tasks.filter(t => t.name.toLowerCase().includes(s))
 })
 
-function select(id: string) {
-  emit('update:modelValue', id)
+function select(id: number) {
+  selected_task_id.value = id
   emit('select', id)
 }
 </script>
@@ -28,8 +33,8 @@ function select(id: string) {
     <v-list density="compact">
       <v-list-item v-for="t in filtered" :key="t.id" :active="t.id===modelValue" @click="select(t.id)">
         <v-list-item-title>
-          <v-icon size="small" class="mr-2">{{ t.icon || 'mdi-checkbox-blank-circle-outline' }}</v-icon>
-          {{ t.name }} <span class="text-medium-emphasis">· {{ t.defaultMinutes }}m</span>
+          <font-awesome-icon :icon="['fas', t.icon_name]" class="mr-2" />
+          {{ t.name }} <span class="text-medium-emphasis">· {{ t.duration }}m</span>
         </v-list-item-title>
         <template #append>
           <v-btn icon="mdi-delete" size="small" variant="text" @click.stop="$emit('delete', t.id)"></v-btn>
