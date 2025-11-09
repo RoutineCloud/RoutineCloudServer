@@ -18,7 +18,7 @@ alembic = ">=1.16.4, <2"
 psycopg2-binary = ">=2.9.10, <3"
 python-multipart = ">=0.0.20, <0.0.21"
 authlib = ">=1.6.1, <2"
-pydantic = ">=2.11.7, <3"
+pydantic = { version = ">=2.0", extras = ["email", "timezone"] }
 sqlmodel = "*"
 pydantic-settings = ">=2.10.1, <3"
 websockets = ">=15.0.1, <16"
