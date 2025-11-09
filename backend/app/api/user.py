@@ -18,8 +18,7 @@ async def get_current_user(
     """
     Get current user information
     """
-    return UserRead(id=current_user.id,
-                    username=current_user.username,
+    return UserRead(username=current_user.username,
                     email=current_user.email,
                     is_active=current_user.is_active
                     )
