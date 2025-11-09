@@ -316,6 +316,25 @@ export type Token = {
 };
 
 /**
+ * UserRead
+ * Schema for returning user data.
+ */
+export type UserRead = {
+    /**
+     * Email
+     */
+    email?: string | null;
+    /**
+     * Username
+     */
+    username?: string | null;
+    /**
+     * Is Active
+     */
+    is_active?: boolean | null;
+};
+
+/**
  * ValidationError
  */
 export type ValidationError = {
@@ -538,110 +557,28 @@ export type DevicesUpdateResponses = {
 
 export type DevicesUpdateResponse = DevicesUpdateResponses[keyof DevicesUpdateResponses];
 
-export type GetCurrentUserApiUsersMeGetData = {
+export type UsersMeData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/users/me';
 };
 
-export type GetCurrentUserApiUsersMeGetErrors = {
+export type UsersMeErrors = {
     /**
      * Not found
      */
     404: unknown;
 };
 
-export type GetCurrentUserApiUsersMeGetResponses = {
+export type UsersMeResponses = {
     /**
      * Successful Response
      */
-    200: unknown;
+    200: UserRead;
 };
 
-export type UpdateCurrentUserApiUsersMePutData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/users/me';
-};
-
-export type UpdateCurrentUserApiUsersMePutErrors = {
-    /**
-     * Not found
-     */
-    404: unknown;
-};
-
-export type UpdateCurrentUserApiUsersMePutResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
-
-export type GetUserRoutinesApiUsersMeRoutinesGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/users/me/routines';
-};
-
-export type GetUserRoutinesApiUsersMeRoutinesGetErrors = {
-    /**
-     * Not found
-     */
-    404: unknown;
-};
-
-export type GetUserRoutinesApiUsersMeRoutinesGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
-
-export type GetUserSettingsApiUsersMeSettingsGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/users/me/settings';
-};
-
-export type GetUserSettingsApiUsersMeSettingsGetErrors = {
-    /**
-     * Not found
-     */
-    404: unknown;
-};
-
-export type GetUserSettingsApiUsersMeSettingsGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
-
-export type UpdateUserSettingsApiUsersMeSettingsPutData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/users/me/settings';
-};
-
-export type UpdateUserSettingsApiUsersMeSettingsPutErrors = {
-    /**
-     * Not found
-     */
-    404: unknown;
-};
-
-export type UpdateUserSettingsApiUsersMeSettingsPutResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
+export type UsersMeResponse = UsersMeResponses[keyof UsersMeResponses];
 
 export type LoginForAccessTokenApiOauthTokenPostData = {
     body?: BodyLoginForAccessTokenApiOauthTokenPost;
