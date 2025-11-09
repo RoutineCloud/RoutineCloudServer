@@ -1,11 +1,18 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import { loginReq, type LoginResponse } from '@/api/auth';
+import {defineStore} from 'pinia';
+import {computed, ref} from 'vue';
 import VueJwtDecode from 'vue-jwt-decode';
+import {Authentication} from "@/api";
+
+type User = {
+    username: string;
+    email: string;
+    id: string;
+    is_superuser: boolean;
+}
 
 export const useUserStore = defineStore('user', () => {
   // State
-  const user = ref<LoginResponse['user'] | null>(null);
+  const user = ref<User | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -23,7 +30,13 @@ export const useUserStore = defineStore('user', () => {
     error.value = null;
 
     try {
-      const data = await loginReq(email, password) as LoginResponse;
+        const {data, error} = await Authentication.loginForAccessTokenApiOauthTokenPost({
+            body: {
+                grant_type: "password",
+                username: email,
+                password: password
+            }
+        })
       const { access_token, token_type } = data;
 
         // Decode JWT token to get user information

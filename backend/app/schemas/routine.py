@@ -25,6 +25,13 @@ class RoutineRead(RoutineBase):
     id: int
     tasks: Optional[List[TaskInRoutineRead]] = None
 
+    model_config = {"title": "Routine"}
+
+
+class RoutineUpdate(SQLModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
 
 class RoutineTaskAdd(SQLModel):
     task_id: int

@@ -1,14 +1,13 @@
-from __future__ import annotations
-
 from typing import List, TYPE_CHECKING
 
-from sqlmodel import Relationship
+from sqlmodel import Relationship, Field
 
 from .base import BaseModel
 from .routine_task import RoutineTask
 
 if TYPE_CHECKING:
     from .routine import Routine
+    from .user import User
 
 
 class Task(BaseModel, table=True):
@@ -20,8 +19,10 @@ class Task(BaseModel, table=True):
     icon_name: str
     sound: str
     duration: int  # Duration in seconds
+    user_id: int = Field(foreign_key="users.id")
 
     # Relationships
+    owner: "User" = Relationship(back_populates="tasks")
     routine_tasks: List[RoutineTask] = Relationship(back_populates="task")
     routines: List["Routine"] = Relationship(back_populates="tasks", link_model=RoutineTask)
 

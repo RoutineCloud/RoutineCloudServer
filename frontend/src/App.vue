@@ -17,6 +17,27 @@
 
 <script>
 import Menu from '@/views/Menu.vue'
+import {useUserStore} from "@/stores/index.js";
+import {client} from "@/api/client.gen.js";
+
+
+client.instance.interceptors.request.use((config) => {
+    const token = localStorage.getItem("auth_token")
+    config.headers.set('Authorization', `Bearer ${token}`);
+    return config;
+});
+// Global 401 handler -> logout
+client.instance.interceptors.response.use(
+  r => r,
+  err => {
+    if (err.response?.status === 401) {
+      const userStore = useUserStore()
+      userStore.logout()
+    }
+    return Promise.reject(err)
+  }
+)
+
 export default {
   name: 'App',
   components: {Menu},

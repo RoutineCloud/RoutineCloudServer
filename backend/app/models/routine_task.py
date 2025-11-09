@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Optional, TYPE_CHECKING
 
 from sqlmodel import Field, Relationship
@@ -24,8 +22,8 @@ class RoutineTask(BaseModel, table=True):
     position: int
 
     # Relationships
-    routine: "Routine | None" = Relationship(back_populates="routine_tasks")
-    task: "Task | None" = Relationship(back_populates="routine_tasks")
+    routine: Optional["Routine"] = Relationship(back_populates="routine_tasks")
+    task: Optional["Task"] = Relationship(back_populates="routine_tasks")
 
     def __repr__(self):
         return f"<RoutineTask(routine_id={self.routine_id}, task_id={self.task_id}, position={self.position})>"

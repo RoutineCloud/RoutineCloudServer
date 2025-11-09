@@ -1,5 +1,4 @@
-from __future__ import annotations
-
+from enum import Enum
 from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship
@@ -9,6 +8,9 @@ from app.models.base import BaseModel
 if TYPE_CHECKING:
     from .user import User
 
+class DeviceStatus(str, Enum):
+    ONLINE = "online"
+    OFFLINE = "offline"
 
 class Device(BaseModel, table=True):
     """
@@ -18,7 +20,7 @@ class Device(BaseModel, table=True):
 
     name: str
     type: str
-    status: str = "offline"
+    status: DeviceStatus = DeviceStatus.OFFLINE
     is_active: bool = True
 
     # Foreign keys

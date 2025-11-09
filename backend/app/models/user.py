@@ -1,4 +1,4 @@
-from __future__ import annotations
+#DO NOT use from future import annotations as this will break SQLModel with SQLAlchemy!!!
 
 from datetime import datetime
 from typing import Optional, List
@@ -11,6 +11,7 @@ from app.models.base import BaseModel
 if TYPE_CHECKING:
     from .device import Device
     from .routine import Routine
+    from .task import Task
 
 
 class User(BaseModel, table=True):
@@ -27,6 +28,7 @@ class User(BaseModel, table=True):
     # Relationships
     devices: List["Device"] = Relationship(back_populates="owner")
     routines: List["Routine"] = Relationship(back_populates="owner")
+    tasks: List["Task"] = Relationship(back_populates="owner")
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"

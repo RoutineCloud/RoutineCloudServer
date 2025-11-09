@@ -1,10 +1,10 @@
 import base64
 import hashlib
 import secrets
-import jwt
 from datetime import timedelta, datetime
 from typing import Dict, Optional, Tuple
 
+import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
@@ -72,7 +72,7 @@ def _verify_pkce(code_verifier: Optional[str], code_challenge: str, method: str)
         return False
 
 
-@router.post("/token")
+@router.post("/token", response_model=Token)
 async def login_for_access_token(
     request: Request,
     token_form: OAuth2TokenForm = Depends(OAuth2TokenForm),

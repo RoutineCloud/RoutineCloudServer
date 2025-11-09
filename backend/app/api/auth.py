@@ -1,12 +1,12 @@
 from datetime import timedelta
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from typing import List, Optional, Annotated
-from sqlmodel import Session, select
 from sqlalchemy import or_
+from sqlmodel import Session, select
 
-from app.core.security import verify_password, create_access_token, get_current_user
+from app.core.security import verify_password, create_access_token
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.security import Token
@@ -22,7 +22,7 @@ router = APIRouter(
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/token")
 
-@router.post("/token")
+@router.post("/token", response_model=Token)
 async def login_for_access_token(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         db: Session = Depends(get_db),

@@ -28,6 +28,24 @@ const routes: RouteRecordRaw[] = [
     meta: {
       title: 'Link Alexa - Routine Cloud'
     }
+  },
+  {
+    path: '/routines',
+    name: 'Routines',
+    component: () => import('../views/RoutinesPage.vue'),
+    meta: { title: 'Routines - Routine Cloud' }
+  },
+  {
+    path: '/routines/:id',
+    name: 'RoutineDetail',
+    component: () => import('../views/RoutineDetailPage.vue'),
+    meta: { title: 'Routine - Routine Cloud' }
+  },
+  {
+    path: '/tasks',
+    name: 'Tasks',
+    component: () => import('../views/TaskLibraryPage.vue'),
+    meta: { title: 'Tasks - Routine Cloud' }
   }
 ]
 
