@@ -1,5 +1,5 @@
 from typing import Optional
-from datetime import datetime
+
 from pydantic import EmailStr
 from sqlmodel import SQLModel
 
@@ -23,18 +23,6 @@ class UserUpdate(UserBase):
     password: Optional[str] = None
 
 
-class UserInDBBase(UserBase):
-    """Base schema for user in database."""
-    id: Optional[int] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-
-
-class UserRead(UserInDBBase):
+class UserRead(UserBase):
     """Schema for returning user data."""
     pass
-
-
-class UserInDB(UserInDBBase):
-    """Schema for user in database with hashed password."""
-    hashed_password: str
