@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     OAUTH_CLIENT_ID: str = os.getenv("OAUTH_CLIENT_ID", "AlexaRoutinCloud")
     OAUTH_CLIENT_SECRET: Optional[str] = os.getenv("OAUTH_CLIENT_SECRET", None)
     OAUTH_ALLOWED_REDIRECT_URIS: List[AnyHttpUrl] = []
+    # Device Authorization Flow verification page (frontend)
+    OAUTH_DEVICE_VERIFICATION_URI: AnyHttpUrl = "http://localhost:3000/device"
 
     # Alexa integration settings
     # TODO Why do I need this?

@@ -1,52 +1,64 @@
-import { createRouter, createWebHistory, type Router, type RouteRecordRaw } from 'vue-router'
+import {createRouter, createWebHistory, type Router, type RouteRecordRaw} from 'vue-router'
 
 // Define routes
 const routes: RouteRecordRaw[] = [
-  {
-    path: '/',
-    name: 'Home',
-    component: () => import('../views/Home.vue')
-  },
-  {
-    path: '/about',
-    name: 'About',
-    component: () => import('../views/About.vue')
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: () => import('../views/LoginPage.vue'),
-    meta: {
-      requiresAuth: false,
-      title: 'Login - Routine Cloud'
+    {
+        path: '/',
+        name: 'Home',
+        component: () => import('../views/Home.vue')
+    },
+    {
+        path: '/about',
+        name: 'About',
+        component: () => import('../views/About.vue')
+    },
+    {
+        path: '/login',
+        name: 'Login',
+        component: () => import('../views/LoginPage.vue'),
+        meta: {
+          requiresAuth: false,
+          title: 'Login - Routine Cloud'
+        }
+    },
+    {
+        path: '/oauth/authorize',
+        name: 'OAuthAuthorize',
+        component: () => import('../views/OAuthAuthorize.vue'),
+        meta: {
+          title: 'Link Alexa - Routine Cloud'
+        }
+    },
+    {
+        path: '/routines',
+        name: 'Routines',
+        component: () => import('../views/RoutinesPage.vue'),
+        meta: { title: 'Routines - Routine Cloud' }
+    },
+    {
+        path: '/routines/:id',
+        name: 'RoutineDetail',
+        component: () => import('../views/RoutineDetailPage.vue'),
+        meta: { title: 'Routine - Routine Cloud' }
+    },
+    {
+        path: '/tasks',
+        name: 'Tasks',
+        component: () => import('../views/TaskLibraryPage.vue'),
+        meta: { title: 'Tasks - Routine Cloud' }
+    },
+    {
+        path: '/device',
+        name: 'DeviceVerify',
+        component: () => import('../views/DeviceVerifyPage.vue'),
+        meta: { title: 'Link Device - Routine Cloud' }
+    },
+    {
+        path: "/profile",
+        name: "Profile",
+        component: () => import("../views/ProfilePage.vue"),
+        meta: { title: "Profile - Routine Cloud" }
     }
-  },
-  {
-    path: '/oauth/authorize',
-    name: 'OAuthAuthorize',
-    component: () => import('../views/OAuthAuthorize.vue'),
-    meta: {
-      title: 'Link Alexa - Routine Cloud'
-    }
-  },
-  {
-    path: '/routines',
-    name: 'Routines',
-    component: () => import('../views/RoutinesPage.vue'),
-    meta: { title: 'Routines - Routine Cloud' }
-  },
-  {
-    path: '/routines/:id',
-    name: 'RoutineDetail',
-    component: () => import('../views/RoutineDetailPage.vue'),
-    meta: { title: 'Routine - Routine Cloud' }
-  },
-  {
-    path: '/tasks',
-    name: 'Tasks',
-    component: () => import('../views/TaskLibraryPage.vue'),
-    meta: { title: 'Tasks - Routine Cloud' }
-  }
 ]
 
 // Create router instance

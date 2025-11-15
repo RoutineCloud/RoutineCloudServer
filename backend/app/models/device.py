@@ -17,11 +17,11 @@ class Device(BaseModel, table=True):
     Device model for IoT devices (SQLModel)
     """
     __tablename__ = "devices"
-
     name: str
     type: str
     status: DeviceStatus = DeviceStatus.OFFLINE
     is_active: bool = True
+    device_id: str = Field(index=True)
 
     # Foreign keys
     owner_id: int = Field(foreign_key="users.id")

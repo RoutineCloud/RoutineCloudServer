@@ -220,3 +220,37 @@ async def remove_task_from_routine(
     db.commit()
 
     return _load_routine_tasks(db, r.id)
+
+
+# --- WebSocket-triggered routine control endpoints ---
+from app.websocket.manager import ws_manager  # type: ignore
+
+@router.post("/{routine_id}/start", status_code=status.HTTP_202_ACCEPTED, operation_id="routines_start")
+async def start_routine(
+    routine_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    r: Optional[Routine] = db.exec(
+        select(Routine).where(Routine.id == routine_id, Routine.user_id == current_user.id)
+    ).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Routine not found")
+    # Push event to all of this user's connections
+    await ws_manager.push_routine_event(current_user.id, routine_id, "start_routine")
+    return {"status": "started"}
+
+
+@router.post("/{routine_id}/end", status_code=status.HTTP_202_ACCEPTED, operation_id="routines_end")
+async def end_routine(
+    routine_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    r: Optional[Routine] = db.exec(
+        select(Routine).where(Routine.id == routine_id, Routine.user_id == current_user.id)
+    ).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Routine not found")
+    await ws_manager.push_routine_event(current_user.id, routine_id, "stop_routine")
+    return {"status": "ended"}
