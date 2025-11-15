@@ -1,12 +1,24 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from sqladmin import Admin, ModelView
-from app.db.session import engine
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
 from app.db import base as models_base
+from app.db.session import engine
 
 # Create FastAPI app
 app = FastAPI(title="Routine Cloud API")
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc):
+    body = exc.detail if isinstance(exc.detail, dict) else {"detail": exc.detail}
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=body,
+        headers=exc.headers or {},
+    )
+
 
 # Configure CORS
 app.add_middleware(
@@ -24,6 +36,7 @@ from app.api.user import router as user_router
 from app.api.oauth import router as oauth_router
 from app.api.task import router as task_router
 from app.api.routine import router as routine_router
+from app.websocket.routes import router as ws_router
 
 # Include API routers
 
@@ -39,6 +52,7 @@ app.include_router(user_router)
 app.include_router(oauth_router)
 app.include_router(task_router)
 app.include_router(routine_router)
+app.include_router(ws_router)
 
 @app.get("/")
 async def root():

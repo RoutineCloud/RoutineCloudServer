@@ -23,13 +23,18 @@ import {client} from "@/api/client.gen.js";
 
 client.instance.interceptors.request.use((config) => {
     const token = localStorage.getItem("auth_token")
-    config.headers.set('Authorization', `Bearer ${token}`);
-    return config;
+    console.log("test")
+    config.headers.set('Authorization', `Bearer ${token}`)
+    return config
 });
 // Global 401 handler -> logout
 client.instance.interceptors.response.use(
-  r => r,
+  r => {
+    console.log("test")
+    return r
+  },
   err => {
+    console.log("test")
     if (err.response?.status === 401) {
       const userStore = useUserStore()
       userStore.logout()

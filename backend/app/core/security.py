@@ -20,7 +20,49 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 # JWT token settings
 ALGORITHM = "HS256"
 
+class OAuth2DeviceCodeForm:
+    def __init__(
+            self,
+            *,
+            client_id: Annotated[str, Form()] = None,
+            scope: Annotated[str, Form()] = "",
+    ):
+        self.client_id = client_id
+        self.scope = scope
 
+class OAuthAuthorizeForm:
+    def __init__(
+        self,
+        *,
+        response_type: Annotated[Optional[str], Form()] = None,
+        client_id: Annotated[Optional[str], Form()] = None,
+        redirect_uri: Annotated[Optional[str], Form()] = None,
+        state: Annotated[Optional[str], Form()] = "",
+        scope: Annotated[str, Form()] = "",
+        code_challenge: Annotated[Optional[str], Form()] = None,
+        code_challenge_method: Annotated[str, Form()] = "S256",
+        client_secret: Annotated[Optional[str], Form()] = None,
+    ) -> None:
+        self.response_type = response_type
+        self.client_id = client_id
+        self.redirect_uri = redirect_uri
+        self.state = state or ""
+        self.scope = scope or ""
+        self.code_challenge = code_challenge
+        self.code_challenge_method = code_challenge_method or "S256"
+        self.client_secret = client_secret
+
+class DeviceVerifyForm:
+    def __init__(
+        self,
+        *,
+        user_code: Annotated[Optional[str], Form()] = None,
+        name: Annotated[Optional[str], Form()] = None,
+        approve: Annotated[Optional[bool], Form()] = True,
+    ) -> None:
+        self.user_code = (user_code or "").strip() if user_code else None
+        self.name = name
+        self.approve = True if approve is None else approve
 
 class OAuth2TokenForm:
     def __init__(
@@ -40,6 +82,8 @@ class OAuth2TokenForm:
         code_verifier: Annotated[Union[str, None], Form()] = None,
         # refresh_token grant
         refresh_token: Annotated[Union[str, None], Form()] = None,
+        # device_code grant
+        device_code: Annotated[Union[str, None], Form()] = None,
     ) -> None:
         # assign all
         self.grant_type = grant_type
@@ -52,7 +96,7 @@ class OAuth2TokenForm:
         self.redirect_uri = redirect_uri
         self.code_verifier = code_verifier
         self.refresh_token = refresh_token
-
+        self.device_code = device_code
         # conditional validation to simulate specific forms' required fields
         # Raise 422 when required parameters for the selected grant are missing
         if not self.grant_type:
@@ -78,6 +122,10 @@ class OAuth2TokenForm:
             if missing:
                 raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                                     detail=f"Missing required fields for authorization_code grant: {', '.join(missing)}")
+        elif self.grant_type == "urn:ietf:params:oauth:grant-type:device_code":
+            missing = []
+            if not self.device_code:
+                missing.append("device_code")
         elif self.grant_type == "refresh_token":
             if not self.refresh_token:
                 raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

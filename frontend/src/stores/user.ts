@@ -37,7 +37,12 @@ export const useUserStore = defineStore('user', () => {
                 password: password
             }
         })
-      const { access_token, token_type } = data;
+      const { access_token,
+          token_type,
+          refresh_token,
+          expires_in,
+          refresh_expires_in
+        } = data;
 
         // Decode JWT token to get user information
         const decoded = VueJwtDecode.decode(access_token)
@@ -66,6 +71,7 @@ export const useUserStore = defineStore('user', () => {
     user.value = null;
     localStorage.removeItem('auth_token');
     localStorage.removeItem("user")
+    console.log("logged out")
   }
 
   return {

@@ -109,6 +109,10 @@ export const useRoutinesStore = defineStore('routines', () => {
     return routines.value.find(r => r.id === routineId)!
   }
 
+  async function start(id: number) {
+    await Routines.routinesStart({ path: { routine_id: id } })
+  }
+
   return {
     // State
     routines,
@@ -130,5 +134,6 @@ export const useRoutinesStore = defineStore('routines', () => {
     removeItem,
     moveItem,
     duplicateItem,
+    start,
   }
 })
