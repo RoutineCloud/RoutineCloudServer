@@ -15,7 +15,7 @@ root = pyrootutils.setup_root(
     search_from=__file__,
     indicator=["pixi.toml"],
     project_root_env_var=True,
-    dotenv=True,
+    dotenv=False,
     cwd = True
 )
 
