@@ -101,7 +101,7 @@
 <script setup>
 import {onMounted, ref} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
-import {generateAuthToken} from "@/api/auth.js";
+import {Authentication} from "@/api";
 
 import {useUserStore} from '@/stores/user.ts'
 
@@ -138,16 +138,23 @@ const authorizeAccount = async () => {
   loading.value = true;
   
   try {
-    const response  = await generateAuthToken(
-        clientId,
-        redirectUri,
-        scope,
-        state,
-        challenge,
-        challengeMethod,
+
+    const {data, error} = await Authentication.authorizeJsonApiOauthAuthJsonPost(
+        {
+          query: {
+            client_id:clientId,
+            redirect_uri:redirectUri,
+            response_type:responseType,
+            scope:scope,
+            state:state,
+            code_challenge:challenge,
+            code_challenge_method:challengeMethod,
+          }
+        }
     )
-    console.log(response)
-    window.location.assign(response.redirect_to);
+
+    console.log(data)
+    window.location.assign(data.redirect_to);
 
   } catch (err) {
     console.error('Authorization failed:', err);

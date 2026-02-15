@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import {onMounted, ref, computed} from 'vue'
-import { useTasksStore } from '@/stores/tasks'
+import {computed, onMounted, ref} from 'vue'
+import {useTasksStore} from '@/stores/tasks'
 import TaskList from '@/components/TaskList.vue'
 import TaskDetailPanel from '@/components/TaskDetailPanel.vue'
 
 const tasksStore = useTasksStore()
-const selectedId = ref<string | undefined>(undefined)
+const selectedId = ref<number | undefined>(undefined)
 const selectedTask = computed(() => selectedId.value ? tasksStore.byId(selectedId.value).value : undefined)
 
 onMounted(async () => {
@@ -14,19 +14,15 @@ onMounted(async () => {
 })
 
 async function onCreate() {
-  const t = await tasksStore.create({ name: 'New Task', defaultMinutes: 5 })
+  const t = await tasksStore.create({ name: 'New Task', duration: 5, icon_name: 'list-check', sound: 'default_sound' })
   selectedId.value = t.id
 }
 
-async function onDelete(id: string) {
+async function onDelete(id: number) {
   await tasksStore.remove(id)
   if (selectedId.value === id) selectedId.value = tasksStore.tasks[0]?.id
 }
 
-async function onSaveGlobal(patch: any) {
-  if (!selectedId.value) return
-  await tasksStore.update(selectedId.value, patch)
-}
 </script>
 
 <template>
@@ -45,7 +41,7 @@ async function onSaveGlobal(patch: any) {
           <v-card-title class="text-h6">Details</v-card-title>
           <v-card-text>
             <div v-if="selectedTask">
-              <TaskDetailPanel mode="global" :task="selectedTask" @save-global="onSaveGlobal" />
+              <TaskDetailPanel :task="selectedTask" />
             </div>
             <div v-else class="text-medium-emphasis">Select a task...</div>
           </v-card-text>

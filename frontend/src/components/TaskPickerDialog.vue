@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
+import {TaskRead} from "@/api";
 
-interface Task { id: number; name: string; icon?: string }
-
-const props = defineProps<{ modelValue: boolean; tasks: Task[] }>()
+const props = defineProps<{ modelValue: boolean; tasks: TaskRead[] }>()
 const emit = defineEmits<{ (e: 'update:modelValue', v: boolean): void; (e: 'select', id: number): void }>()
 
 const q = ref('')
@@ -29,8 +28,8 @@ function close() { emit('update:modelValue', false) }
         <v-list density="compact">
           <v-list-item v-for="t in filtered" :key="t.id" @click="emit('select', t.id)">
             <v-list-item-title>
-              <v-icon size="small" class="mr-2">{{ t.icon || 'mdi-checkbox-blank-circle-outline' }}</v-icon>
-              {{ t.name }} <span class="text-medium-emphasis">· {{ t.defaultMinutes }}m</span>
+              <v-icon size="small" class="mr-2">{{ t.icon_name || 'mdi-checkbox-blank-circle-outline' }}</v-icon>
+              {{ t.name }} <span class="text-medium-emphasis">· {{ t.duration }}m</span>
             </v-list-item-title>
           </v-list-item>
           <v-list-item v-if="filtered.length===0">
