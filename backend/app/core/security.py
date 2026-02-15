@@ -1,8 +1,7 @@
-from datetime import datetime, timedelta
 from typing import Annotated
-from typing import Any, Optional, Dict, Union
+from typing import Optional, Union
 
-import jwt
+from authlib.jose import JoseError, JsonWebToken
 from fastapi import Depends, HTTPException, status
 from fastapi import Form
 from fastapi.security import OAuth2PasswordBearer
@@ -12,13 +11,10 @@ from sqlmodel import Session, select
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.security import TokenData
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-# JWT token settings
-ALGORITHM = "HS256"
 
 class OAuth2DeviceCodeForm:
     def __init__(
@@ -26,9 +22,12 @@ class OAuth2DeviceCodeForm:
             *,
             client_id: Annotated[str, Form()] = None,
             scope: Annotated[str, Form()] = "",
+            device_uuid: Annotated[Optional[str], Form()] = None,
     ):
         self.client_id = client_id
         self.scope = scope
+        # optional unique device identifier provided by the device
+        self.device_uuid = (device_uuid or "").strip() if device_uuid else None
 
 class OAuthAuthorizeForm:
     def __init__(
@@ -131,24 +130,6 @@ class OAuth2TokenForm:
                 raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                                     detail="Missing required field for refresh_token grant: refresh_token")
 
-def create_access_token(
-    data: Dict[str, Any], expires_delta: Optional[timedelta] = None
-) -> str:
-    """
-    Create a JWT access token
-    """
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(
-            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-        )
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verify a password against a hash
@@ -169,15 +150,23 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)],
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    jwt = JsonWebToken([settings.OAUTH2_JWT_ALG])
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        if username is None:
+        #TODO check if adding claims_options is good
+        # Check if validate should be called
+        claims = jwt.decode(token, settings.OAUTH2_JWT_KEY)
+        sub = claims.get("sub")
+        if not sub:
             raise credentials_exception
-        token_data = TokenData(username=username)
-    except jwt.InvalidTokenError:
+    except JoseError:
         raise credentials_exception
-    user = session.exec(select(User).where(User.username == token_data.username)).first()
+
+    try:
+        user_id = int(sub)
+    except (TypeError, ValueError):
+        raise credentials_exception
+
+    user = session.exec(select(User).where(User.id == user_id)).first()
 
     if user is None:
         raise credentials_exception
