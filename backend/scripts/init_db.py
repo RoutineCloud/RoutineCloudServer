@@ -32,6 +32,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Import models to register tables
 from app.db import base as models_base  # noqa: F401
 from app.core.security import get_password_hash
+from app.models.oauth2 import OAuth2Client
 from app.core.config import settings
 
 # Configure logging early
@@ -77,6 +78,7 @@ def init_db() -> None:
         logger.info("Database tables created successfully.")
 
         create_admin_user()
+        seed_oauth_clients()
         logger.info("Database initialization completed successfully.")
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
@@ -124,6 +126,57 @@ def create_admin_user() -> None:
             logger.info(f"Admin user created successfully: {admin_username}")
         except Exception:
             session.rollback()
+            raise
+
+#TODO Check if client are valid
+def _upsert_client(session: Session, *, client_id: str, client_secret: str | None, metadata: dict) -> None:
+    item = OAuth2Client(client_id=client_id, client_secret=client_secret)
+    item.set_client_metadata(metadata)
+    print(item.client_info)
+    session.add(item)
+    session.commit()
+    logger.info(f"Created OAuth2 client: {client_id}")
+
+
+def seed_oauth_clients() -> None:
+    web_client_id = "routine-web"
+    web_client_metadata = {
+        "client_name": "Routine Cloud Web",
+        "grant_types": ["password", "refresh_token"],
+        "response_types": [],
+        "token_endpoint_auth_method": "none",
+        "scope": "",
+    }
+
+    device_client_id = "routine-device"
+    device_client_metadata = {
+        "client_name": "Routine Cloud Device",
+        "grant_types": [
+            "urn:ietf:params:oauth:grant-type:device_code",
+            "refresh_token",
+        ],
+        "response_types": [],
+        "token_endpoint_auth_method": "none",
+        "scope": "",
+    }
+
+    with Session(engine) as session:
+        try:
+            _upsert_client(
+                session,
+                client_id=web_client_id,
+                client_secret="",
+                metadata=web_client_metadata,
+            )
+            _upsert_client(
+                session,
+                client_id=device_client_id,
+                client_secret="",
+                metadata=device_client_metadata,
+            )
+        except Exception:
+            session.rollback()
+            logger.exception("Failed seeding OAuth2 clients")
             raise
 
 if __name__ == "__main__":

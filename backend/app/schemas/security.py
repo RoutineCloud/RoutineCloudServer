@@ -1,10 +1,13 @@
-from pydantic import BaseModel
 from typing import Optional
 
+from pydantic import BaseModel
 
-class Token(BaseModel):
+
+class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+    expires_in: int
+    refresh_token: Optional[str] = None
 
 
 class TokenData(BaseModel):
@@ -13,6 +16,7 @@ class TokenData(BaseModel):
 
 class DeviceInfo(BaseModel):
     id: int
+    uuid: str
     name: str
     type: str
 

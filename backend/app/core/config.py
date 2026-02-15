@@ -1,4 +1,3 @@
-import os
 import secrets
 from pathlib import Path
 from typing import List, Optional, Union
@@ -16,8 +15,6 @@ class Settings(BaseSettings):
     # API settings
     API_V1_STR: str = "/api"
     SECRET_KEY: str = secrets.token_urlsafe(32)
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
-
 
     ALLOWED_HOSTS: List[str] = []
     CORS_ORIGINS: List[str] = []
@@ -37,8 +34,6 @@ class Settings(BaseSettings):
     DATABASE_URL: Optional[str] = None
 
     # OAuth client configuration
-    OAUTH_CLIENT_ID: str = "AlexaRoutinCloud"
-    OAUTH_CLIENT_SECRET: Optional[str] = None
     OAUTH_ALLOWED_REDIRECT_URIS: List[AnyHttpUrl] = []
     # Device Authorization Flow verification page (frontend)
     OAUTH_DEVICE_VERIFICATION_URI: AnyHttpUrl = "http://localhost:3000/device"
@@ -47,6 +42,13 @@ class Settings(BaseSettings):
     # TODO Why do I need this?
     ALEXA_SKILL_ID: Optional[str] = None
     SECRETE_ALEXA_KEY: Optional[str] = None
+
+    # OAuth2/OIDC issuer and JWT signing settings (for Authlib provider)
+    # By default, reuse the SECRET_KEY and HS256
+    OAUTH2_ISSUER: str = "http://localhost:8000"
+    OAUTH2_JWT_KEY: str = secrets.token_urlsafe(32)
+    OAUTH2_JWT_ALG: str = "HS256"
+    OAUTH2_TOKEN_EXPIRES_IN: Optional[dict] = None
 
     # Load environment from backend/.env and backend/.env.local (local takes precedence)
     # Use absolute paths so loading works regardless of current working directory

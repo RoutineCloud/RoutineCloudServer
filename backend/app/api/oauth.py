@@ -1,7 +1,8 @@
 import base64
 import hashlib
 import secrets
-from datetime import timedelta, datetime
+import time
+from datetime import timedelta
 from typing import Dict, Optional, Tuple, Any
 
 import jwt
@@ -16,6 +17,7 @@ from app.core.security import create_access_token, get_current_user, verify_pass
     OAuth2DeviceCodeForm, OAuthAuthorizeForm, DeviceVerifyForm
 from app.db.session import get_db
 from app.models.device import Device, DeviceStatus
+from app.models.oauth2 import DeviceCredential, OAuth2AuthorizationCode
 from app.models.user import User
 from app.schemas.security import Token, DeviceCodeResponse, AuthJsonResponse, DeviceVerificationResponse, DeviceInfo
 
@@ -28,7 +30,7 @@ DEVICE_CODES: Dict[str, Dict] = {}
 
 # Create router
 router = APIRouter(
-    prefix="/api/oauth",
+    prefix="/api/oauth_old",
     tags=["authentication"],
     responses={401: {"description": "Unauthorized"}},
 )
@@ -121,28 +123,30 @@ def _handle_auth_code_grant(request: Request, token_form: OAuth2TokenForm, db: S
     _validate_client(client_id, basic_client_secret)
     if not code or not redirect_uri or not client_id:
         raise HTTPException(status_code=400, detail="invalid_request")
-    record = AUTH_CODES.get(code)
-    if not record:
+    # Load authorization code from DB
+    ac = db.exec(select(OAuth2AuthorizationCode).where(OAuth2AuthorizationCode.code == code)).first()
+    if not ac:
         raise HTTPException(status_code=400, detail="invalid_grant")
-    if record["exp"] < datetime.utcnow():
-        AUTH_CODES.pop(code, None)
+    # Expired?
+    if ac.is_expired():
+        db.delete(ac)
+        db.commit()
         raise HTTPException(status_code=400, detail="expired_code")
-    if record["client_id"] != client_id or record["redirect_uri"] != redirect_uri:
+    if ac.client_id != client_id or ac.redirect_uri != redirect_uri:
         raise HTTPException(status_code=400, detail="invalid_grant")
-    if not _verify_pkce(code_verifier, record["code_challenge"], record["method"]):
+    if not _verify_pkce(code_verifier, ac.code_challenge or "", ac.code_challenge_method or "S256"):
         raise HTTPException(status_code=400, detail="invalid_pkce")
-    # Consume code
-    AUTH_CODES.pop(code, None)
-    user = db.get(User, record["user_id"])
+    # Consume code by deleting it
+    user = db.get(User, ac.user_id)
+    db.delete(ac)
+    db.commit()
     if not user:
         raise HTTPException(status_code=400, detail="invalid_user")
-    user_secret = USER_SECRETS.get(user.id) or record.get("user_secret")
     jwt_token = _mint_access_token_for_user(
         user,
         extra_claims={
-            "user_secret": user_secret, #TODO Check if we need user_secret
             "client_id": client_id,
-            "scope": record.get("scope", ""),
+            "scope": ac.scope or "",
         },
     )
     return Token(access_token=jwt_token, token_type="bearer")
@@ -151,33 +155,33 @@ def _handle_auth_code_grant(request: Request, token_form: OAuth2TokenForm, db: S
 def _handle_device_code_grant(token_form: OAuth2TokenForm, db: Session) -> Token:
     device_code = token_form.device_code
     client_id = token_form.client_id
-    record = DEVICE_CODES.get(device_code)
-    if not record:
+    # Read DeviceCredential from DB instead of in-memory dict
+    cred = db.exec(select(DeviceCredential).where(DeviceCredential.device_code == device_code)).first()
+    if not cred:
         raise HTTPException(status_code=400, detail={"error": "bad_verification_code"})
-    if record["exp"] < datetime.utcnow():
-        DEVICE_CODES.pop(device_code, None)
+    # Expired?
+    if cred.expires_at and cred.expires_at <= int(time.time()):
+        cred.status = "expired"
+        db.add(cred)
+        db.commit()
         raise HTTPException(status_code=400, detail={"error": "expired_token"})
-    if record["client_id"] != client_id:
+    if cred.client_id != client_id:
         raise HTTPException(status_code=400, detail={"error": "invalid_grant"})
-    status_val = record.get("status")
-    if status_val == "pending":
+    if cred.status == "pending":
         raise HTTPException(status_code=400, detail={"error": "authorization_pending"})
-    if status_val == "expired":
-        DEVICE_CODES.pop(device_code, None)
+    if cred.status == "expired":
         raise HTTPException(status_code=400, detail={"error": "expired_token"})
-    if status_val == "denied":
-        DEVICE_CODES.pop(device_code, None)
+    if cred.status == "denied":
         raise HTTPException(status_code=400, detail={"error": "authorization_declined"})
-    if status_val == "authorized":
-        DEVICE_CODES.pop(device_code, None)
-        user = db.get(User, record["user_id"])
+    if cred.status == "authorized":
+        user = db.get(User, cred.user_id) if cred.user_id else None
         if not user:
             raise HTTPException(status_code=400, detail="invalid_user")
         jwt_token = _mint_access_token_for_user(
             user,
             extra_claims={
                 "client_id": client_id,
-                "scope": record.get("scope", ""),
+                "scope": cred.scope or "",
             },
         )
         return Token(access_token=jwt_token, token_type="bearer")
@@ -241,20 +245,25 @@ async def login_for_access_token(
 async def authorize_device(
         request: Request,
         device_form: OAuth2DeviceCodeForm = Depends(OAuth2DeviceCodeForm),
+        db: Session = Depends(get_db),
 ) -> DeviceCodeResponse:
     device_code = secrets.token_urlsafe(32)
     user_code = secrets.token_urlsafe(8)
     verification_uri = str(settings.OAUTH_DEVICE_VERIFICATION_URI)
     verification_uri_complete = f"{settings.OAUTH_DEVICE_VERIFICATION_URI}?user_code={user_code}"
 
-    DEVICE_CODES[device_code] = {
-        "client_id": device_form.client_id,
-        "scope": device_form.scope,
-        "exp": datetime.utcnow() + timedelta(seconds=1800),
-        "device_code": device_code,
-        "user_code": user_code,
-        "status": "pending",
-    }
+    # Save device credential in DB (replaces in-memory DEVICE_CODES)
+    cred = DeviceCredential(
+        client_id=device_form.client_id,
+        scope=device_form.scope or "",
+        device_code=device_code,
+        user_code=user_code,
+        expires_at=int(time.time()) + 1800,
+        interval=5,
+        status="pending",
+    )
+    db.add(cred)
+    db.commit()
 
     return DeviceCodeResponse(
         device_code=device_code,
@@ -271,6 +280,7 @@ async def authorize_device(
 async def authorize(
     request: Request,
     form: OAuthAuthorizeForm = Depends(OAuthAuthorizeForm),
+    db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     # Support both form-encoded and query parameters (fallback)
@@ -292,20 +302,19 @@ async def authorize(
     _validate_client(client_id, client_secret)
 
     code = secrets.token_urlsafe(32)
-    user_secret = secrets.token_urlsafe(32)
-    USER_SECRETS[current_user.id] = user_secret
-
-    AUTH_CODES[code] = {
-        "user_id": current_user.id,
-        "scope": scope or "",
-        "state": state or "",
-        "client_id": client_id,
-        "redirect_uri": redirect_uri,
-        "code_challenge": code_challenge,
-        "method": code_challenge_method or "S256",
-        "user_secret": user_secret,
-        "exp": datetime.utcnow() + timedelta(minutes=10),
-    }
+    # Persist authorization code in DB
+    ac = OAuth2AuthorizationCode(
+        code=code,
+        client_id=client_id,
+        redirect_uri=redirect_uri,
+        response_type="code",
+        scope=scope or "",
+        code_challenge=code_challenge,
+        code_challenge_method=code_challenge_method or "S256",
+        user_id=current_user.id,
+    )
+    db.add(ac)
+    db.commit()
 
     return RedirectResponse(url=f"{redirect_uri}?code={code}&state={state}", status_code=302)
 
@@ -314,6 +323,7 @@ async def authorize(
 async def authorizeJson(
     request: Request,
     form: OAuthAuthorizeForm = Depends(OAuthAuthorizeForm),
+    db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> AuthJsonResponse:
     # Support both form-encoded and query parameters (fallback)
@@ -335,20 +345,18 @@ async def authorizeJson(
     _validate_client(client_id, client_secret)
 
     code = secrets.token_urlsafe(32)
-    user_secret = secrets.token_urlsafe(32)
-    USER_SECRETS[current_user.id] = user_secret
-
-    AUTH_CODES[code] = {
-        "user_id": current_user.id,
-        "scope": scope or "",
-        "state": state or "",
-        "client_id": client_id,
-        "redirect_uri": redirect_uri,
-        "code_challenge": code_challenge,
-        "method": code_challenge_method or "S256",
-        "user_secret": user_secret,
-        "exp": datetime.utcnow() + timedelta(minutes=10),
-    }
+    ac = OAuth2AuthorizationCode(
+        code=code,
+        client_id=client_id,
+        redirect_uri=redirect_uri,
+        response_type="code",
+        scope=scope or "",
+        code_challenge=code_challenge,
+        code_challenge_method=code_challenge_method or "S256",
+        user_id=current_user.id,
+    )
+    db.add(ac)
+    db.commit()
 
     return AuthJsonResponse(redirect_to=f"{redirect_uri}?code={code}&state={state}")
 
@@ -371,45 +379,44 @@ async def verify_device_code(
     if not user_code:
         raise HTTPException(status_code=400, detail="invalid_request")
 
-    # Find device_code record by user_code
-    match_code: Optional[str] = None
-    record: Optional[Dict[str, Any]] = None
-    for dc, rec in DEVICE_CODES.items():
-        if rec.get("user_code") == user_code:
-            match_code = dc
-            record = rec
-            break
-
-    if not record:
+    # Find device credential by user_code in DB
+    cred = db.exec(select(DeviceCredential).where(DeviceCredential.user_code == user_code)).first()
+    if not cred:
         raise HTTPException(status_code=400, detail="bad_verification_code")
 
     # Expired?
-    if record.get("exp") and record["exp"] < datetime.utcnow():
-        record["status"] = "expired"
+    if cred.expires_at and cred.expires_at <= int(time.time()):
+        cred.status = "expired"
+        db.add(cred)
+        db.commit()
         raise HTTPException(status_code=400, detail="expired_token")
 
     # If already denied
-    if record.get("status") == "denied":
+    if cred.status == "denied":
         raise HTTPException(status_code=400, detail="authorization_declined")
 
     # Only allow when pending
-    if record.get("status") not in {"pending", "authorized"}:
+    if cred.status not in {"pending", "authorized"}:
         raise HTTPException(status_code=400, detail="invalid_request")
 
-    if not record.get("client_id"):
+    if not cred.client_id:
         raise HTTPException(status_code=400, detail="invalid_request")
 
     if form.approve is False:
-        record["status"] = "denied"
+        cred.status = "denied"
+        db.add(cred)
+        db.commit()
         return {"status": "denied"}
 
     # Attach user and mark authorized
-    record["status"] = "authorized"
-    record["user_id"] = current_user.id
+    cred.status = "authorized"
+    cred.user_id = current_user.id
+    db.add(cred)
+    db.commit()
 
     # Create a linked Device in DB for traceability
     #Check if device already exists
-    dev = db.exec(select(Device).where(Device.device_id == record["client_id"])).first()
+    dev = db.exec(select(Device).where(Device.device_id == cred.client_id)).first()
     if dev:
         if dev.owner_id != current_user.id:
             raise HTTPException(status_code=400, detail="invalid_grant")
@@ -417,8 +424,8 @@ async def verify_device_code(
             status="authorized",
             device_id=dev.id,
             device=DeviceInfo(id=dev.id, name=dev.name, type=dev.type),
-            client_id=record.get("client_id"),
-            scope=record.get("scope", ""),
+            client_id=cred.client_id,
+            scope=cred.scope or "",
         )
 
     dev = Device(
@@ -427,7 +434,7 @@ async def verify_device_code(
         status=DeviceStatus.ONLINE,
         is_active=True,
         owner_id=current_user.id,
-        device_id=record["client_id"],
+        device_id=cred.client_id,
     )
     db.add(dev)
     db.commit()
@@ -437,6 +444,6 @@ async def verify_device_code(
         status="authorized",
         device_id=dev.id,
         device=DeviceInfo(id=dev.id, name=dev.name, type=dev.type),
-        client_id=record.get("client_id"),
-        scope=record.get("scope", ""),
+        client_id=cred.client_id,
+        scope=cred.scope or "",
     )

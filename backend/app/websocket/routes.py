@@ -9,7 +9,6 @@ from sqlmodel import Session, select
 from sqlmodel import update
 
 from app.core.config import settings
-from app.core.security import ALGORITHM
 from app.db.session import get_db
 from app.models.device import DeviceStatus, Device
 from app.models.routine import Routine
@@ -32,6 +31,7 @@ async def _get_user_and_device_id_from_token(token: Optional[str], db: Session) 
     if not token:
         return None, None
     try:
+        #TODO make the decode with authlib
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
     except jwt.InvalidTokenError:
         return None, None
