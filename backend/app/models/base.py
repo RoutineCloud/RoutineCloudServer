@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
+from sqlalchemy.orm import declarative_base
 from sqlmodel import SQLModel, Field
 
 
@@ -10,3 +11,5 @@ class BaseModel(SQLModel):
     # Timestamps
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow, sa_column_kwargs={"onupdate": datetime.utcnow})
+
+Base = declarative_base(metadata=SQLModel.metadata)

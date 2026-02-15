@@ -6,7 +6,7 @@
           <div class="d-flex flex-column justify-center align-center fill-height white--text">
             <h1 class="text-h3 font-weight-bold mb-4">Routine Cloud</h1>
             <p class="text-h6 text-center mx-10">
-              Manage your daily routines and automate your smart home devices
+              Manage your daily routines and take back control over your time
             </p>
           </div>
         </v-col>
@@ -68,9 +68,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import {useRouter, useRoute} from 'vue-router';
-import { useUserStore } from '@/stores';
+import {ref} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {useUserStore} from '@/stores';
 
 
 const router = useRouter();
