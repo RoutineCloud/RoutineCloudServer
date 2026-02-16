@@ -33,6 +33,7 @@ export const useUserStore = defineStore('user', () => {
         const {data, error} = await Authentication.loginForAccessTokenApiOauthTokenPost({
             body: {
                 grant_type: "password",
+                client_id: "routine-web",
                 username: email,
                 password: password
             }
@@ -40,17 +41,14 @@ export const useUserStore = defineStore('user', () => {
       const { access_token,
           token_type,
           refresh_token,
-          expires_in,
-          refresh_expires_in
+          expires_in
         } = data;
 
         // Decode JWT token to get user information
         const decoded = VueJwtDecode.decode(access_token)
+        console.log(decoded)
         const responseUser = {
-            username: decoded.sub,
-            email: decoded.user.email,
-            id: decoded.user.id,
-            is_superuser: decoded.user.is_superuser
+            id: decoded.sub,
         }
         user.value = responseUser;
 
