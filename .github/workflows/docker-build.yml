@@ -30,8 +30,8 @@ jobs:
         file: docker/Dockerfile.backend
         push: ${{ github.event_name != 'pull_request' }}
         tags: |
-          ghcr.io/routine_cloud/server_backend:latest
-          ghcr.io/routine_cloud/server_backend:${{ github.sha }}
+          ghcr.io/routinecloud/server_backend:latest
+          ghcr.io/routinecloud/server_backend:${{ github.sha }}
 
     - name: Build and push Frontend image
       uses: docker/build-push-action@v5
@@ -40,5 +40,5 @@ jobs:
         file: docker/Dockerfile.frontend
         push: ${{ github.event_name != 'pull_request' }}
         tags: |
-          ghcr.io/routine_cloud/server_frontend:latest
-          ghcr.io/routine_cloud/server_frontend:${{ github.sha }}
+          ghcr.io/routinecloud/server_frontend:latest
+          ghcr.io/routinecloud/server_frontend:${{ github.sha }}
