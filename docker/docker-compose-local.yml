@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   backend:
-    image: ghcr.io/routinecloud/server_backend:latest
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
     container_name: routine-cloud-backend
     restart: unless-stopped
     ports:
@@ -13,8 +15,6 @@ services:
       - DEBUG=False
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost,http://127.0.0.1}
-    depends_on:
-      - db
     volumes:
       - backend_data:/app/data
     networks:
@@ -34,13 +34,13 @@ services:
       - routine-cloud-network
 
   frontend:
-    image: ghcr.io/routinecloud/server_frontend:latest
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
     container_name: routine-cloud-frontend
     restart: unless-stopped
     ports:
       - "80:80"
-    depends_on:
-      - backend
     networks:
       - routine-cloud-network
 
