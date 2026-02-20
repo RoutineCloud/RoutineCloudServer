@@ -32,6 +32,11 @@ class Settings(BaseSettings):
         raise ValueError(v)
 
     DATABASE_URL: Optional[str] = None
+    
+    # Admin user configuration
+    ADMIN_USERNAME: str = "admin"
+    ADMIN_EMAIL: str = "admin@example.com"
+    INIT_ADMIN_PASSWORD: Optional[str] = None
 
     # OAuth client configuration
     OAUTH_ALLOWED_REDIRECT_URIS: List[AnyHttpUrl] = []
