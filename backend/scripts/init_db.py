@@ -5,7 +5,7 @@ Initializes the database by creating all tables and setting up an admin user.
 Env vars:
 - ADMIN_USERNAME (default: admin)
 - ADMIN_EMAIL    (default: admin@example.com)
-- ADMIN_PASSWORD (required)
+- INIT_ADMIN_PASSWORD (required)
 
 Usage:
     python -m scripts.init_db
@@ -20,7 +20,7 @@ from sqlmodel import SQLModel, create_engine, Session, select
 # Setup root directory
 root = pyrootutils.setup_root(
     search_from=__file__,
-    indicator=["pixi.toml"],
+    indicator=["pyproject.toml"],
     project_root_env_var=True,
     dotenv=True,
     cwd=True,
@@ -86,29 +86,25 @@ def init_db() -> None:
 
 def create_admin_user() -> None:
     """
-    Create an admin user using environment variables (SQLModel Session).
+    Create an admin user using environment variables if no admin exists.
     """
-    admin_username = os.getenv("ADMIN_USERNAME", "admin")
-    admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
-    admin_password = os.getenv("ADMIN_PASSWORD")
+    admin_username = settings.ADMIN_USERNAME
+    admin_email = settings.ADMIN_EMAIL
+    admin_password = settings.INIT_ADMIN_PASSWORD
 
     if not admin_password:
-        logger.error("ADMIN_PASSWORD environment variable is required.")
+        logger.error("INIT_ADMIN_PASSWORD environment variable is required.")
         sys.exit(1)
 
     with Session(engine) as session:
         try:
-            # Check existence by username, then email (pure SQLModel/select)
-            existing = session.exec(
-                select(models_base.User).where(models_base.User.username == admin_username)
+            # Check if any admin user exists
+            existing_admin = session.exec(
+                select(models_base.User).where(models_base.User.is_superuser == True)
             ).first()
-            if not existing:
-                existing = session.exec(
-                    select(models_base.User).where(models_base.User.email == admin_email)
-                ).first()
 
-            if existing:
-                logger.info(f"Admin user already exists: {existing.username}")
+            if existing_admin:
+                logger.info(f"Admin user already exists: {existing_admin.username}")
                 return
 
             # Create user
@@ -130,38 +126,50 @@ def create_admin_user() -> None:
 
 #TODO Check if client are valid
 def _upsert_client(session: Session, *, client_id: str, client_secret: str | None, metadata: dict) -> None:
+    # Check if client already exists
+    existing = session.exec(select(OAuth2Client).where(OAuth2Client.client_id == client_id)).first()
+    
+    if existing:
+        logger.info(f"OAuth2 client already exists: {client_id}")
+        return
+
     item = OAuth2Client(client_id=client_id, client_secret=client_secret)
     item.set_client_metadata(metadata)
-    print(item.client_info)
     session.add(item)
     session.commit()
     logger.info(f"Created OAuth2 client: {client_id}")
 
 
 def seed_oauth_clients() -> None:
-    web_client_id = "routine-web"
-    web_client_metadata = {
-        "client_name": "Routine Cloud Web",
-        "grant_types": ["password", "refresh_token"],
-        "response_types": [],
-        "token_endpoint_auth_method": "none",
-        "scope": "",
-    }
-
-    device_client_id = "routine-device"
-    device_client_metadata = {
-        "client_name": "Routine Cloud Device",
-        "grant_types": [
-            "urn:ietf:params:oauth:grant-type:device_code",
-            "refresh_token",
-        ],
-        "response_types": [],
-        "token_endpoint_auth_method": "none",
-        "scope": "",
-    }
-
     with Session(engine) as session:
         try:
+            # Check if any OAuth2 client exists
+            existing = session.exec(select(OAuth2Client)).first()
+            if existing:
+                logger.info("OAuth2 clients already exist, skipping seeding.")
+                return
+
+            web_client_id = "routine-web"
+            web_client_metadata = {
+                "client_name": "Routine Cloud Web",
+                "grant_types": ["password", "refresh_token"],
+                "response_types": [],
+                "token_endpoint_auth_method": "none",
+                "scope": "",
+            }
+
+            device_client_id = "routine-device"
+            device_client_metadata = {
+                "client_name": "Routine Cloud Device",
+                "grant_types": [
+                    "urn:ietf:params:oauth:grant-type:device_code",
+                    "refresh_token",
+                ],
+                "response_types": [],
+                "token_endpoint_auth_method": "none",
+                "scope": "",
+            }
+
             _upsert_client(
                 session,
                 client_id=web_client_id,
