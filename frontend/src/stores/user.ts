@@ -1,7 +1,7 @@
 import {defineStore} from 'pinia';
 import {computed, ref} from 'vue';
 import VueJwtDecode from 'vue-jwt-decode';
-import {Authentication} from "@/api";
+import {Oauth2, Users} from "@/api";
 
 type User = {
     username: string;
@@ -30,7 +30,7 @@ export const useUserStore = defineStore('user', () => {
     error.value = null;
 
     try {
-        const {data, error} = await Authentication.loginForAccessTokenApiOauthTokenPost({
+        const {data, error} = await Oauth2.tokenApiOauthTokenPost({
             body: {
                 grant_type: "password",
                 client_id: "routine-web",
@@ -38,21 +38,39 @@ export const useUserStore = defineStore('user', () => {
                 password: password
             }
         })
+
+        if (error) {
+            console.error('Login failed:', error);
+            error.value = 'Invalid email or password';
+            return false;
+        }
+
       const { access_token,
           token_type,
           refresh_token,
           expires_in
         } = data;
 
-        // Decode JWT token to get user information
+        localStorage.setItem('auth_token', access_token);
+
+        // Fetch user profile info
+        const {data: userData, error: userError} = await Users.usersMe()
+        if (userError) {
+            console.error('Failed to fetch user profile:', userError);
+            error.value = 'Failed to fetch user profile';
+            return false;
+        }
+
+        // Decode JWT token to get user ID
         const decoded = VueJwtDecode.decode(access_token)
-        console.log(decoded)
+        console.log("Decoded token:", decoded)
+        
         const responseUser = {
             id: decoded.sub,
+            ...userData
         }
         user.value = responseUser;
 
-      localStorage.setItem('auth_token', access_token);
       localStorage.setItem("user", JSON.stringify(responseUser))
 
       return true;
