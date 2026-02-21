@@ -18,6 +18,7 @@ services:
       - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
       - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
       - INIT_ADMIN_PASSWORD=${INIT_ADMIN_PASSWORD}
+      - AUTHLIB_INSECURE_TRANSPORT=1
     volumes:
       - backend_data:/app/data
     networks:
@@ -27,6 +28,8 @@ services:
     image: postgres:16-alpine
     container_name: routine-cloud-db
     restart: unless-stopped
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-routine_cloud}
       - POSTGRES_USER=${POSTGRES_USER:-routine_user}
@@ -44,6 +47,8 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    environment:
+      - BACKEND_HOSTNAME=${BACKEND_HOSTNAME:-backend:8000}
     networks:
       - routine-cloud-network
 

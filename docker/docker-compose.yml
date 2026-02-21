@@ -39,6 +39,8 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    environment:
+      - BACKEND_HOSTNAME=${BACKEND_HOSTNAME:-backend:8000}
     depends_on:
       - backend
     networks:

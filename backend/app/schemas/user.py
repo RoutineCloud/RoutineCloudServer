@@ -23,6 +23,12 @@ class UserUpdate(UserBase):
     password: Optional[str] = None
 
 
+class UserPasswordUpdate(SQLModel):
+    """Schema for updating a user's password."""
+    current_password: str
+    new_password: str
+
+
 class UserRead(UserBase):
     """Schema for returning user data."""
     pass

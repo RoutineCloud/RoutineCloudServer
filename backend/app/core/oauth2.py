@@ -146,7 +146,6 @@ def create_bearer_token_generator():
             claims["sub"] = str(sub)
         if scope:
             claims["scope"] = scope
-
         key = settings.OAUTH2_JWT_KEY
         alg = settings.OAUTH2_JWT_ALG
         return jwt.encode({"alg": alg}, claims, key).decode()
