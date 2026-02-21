@@ -390,6 +390,33 @@ export type TokenResponse = {
 };
 
 /**
+ * UserCreate
+ * Schema for creating a new user.
+ */
+export type UserCreate = {
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Username
+     */
+    username: string;
+    /**
+     * Is Active
+     */
+    is_active?: boolean | null;
+    /**
+     * Is Superuser
+     */
+    is_superuser?: boolean | null;
+    /**
+     * Password
+     */
+    password: string;
+};
+
+/**
  * UserPasswordUpdate
  * Schema for updating a user's password.
  */
@@ -552,6 +579,59 @@ export type UsersChangePasswordResponses = {
      */
     200: unknown;
 };
+
+export type UsersListData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/users/';
+};
+
+export type UsersListErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type UsersListResponses = {
+    /**
+     * Response Users List
+     * Successful Response
+     */
+    200: Array<UserRead>;
+};
+
+export type UsersListResponse = UsersListResponses[keyof UsersListResponses];
+
+export type UsersCreateData = {
+    body: UserCreate;
+    path?: never;
+    query?: never;
+    url: '/api/users/';
+};
+
+export type UsersCreateErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UsersCreateError = UsersCreateErrors[keyof UsersCreateErrors];
+
+export type UsersCreateResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserRead;
+};
+
+export type UsersCreateResponse = UsersCreateResponses[keyof UsersCreateResponses];
 
 export type TokenApiOauthTokenPostData = {
     body?: BodyTokenApiOauthTokenPost;

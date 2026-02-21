@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 import ChangePassword from '@/components/ChangePassword.vue'
+import DevicesPanel from '@/components/DevicesPanel.vue'
 import {useUserStore} from '@/stores/index.js'
 
 const userStore = useUserStore()
@@ -8,6 +9,7 @@ const activeTab = ref('profile')
 
 const menuItems = [
   { id: 'profile', title: 'Profile', icon: 'mdi-account' },
+  { id: 'devices', title: 'Devices', icon: 'mdi-chip' },
   { id: 'password', title: 'Change Password', icon: 'mdi-lock-reset' }
 ]
 </script>
@@ -55,6 +57,10 @@ const menuItems = [
               <div class="text-caption text-grey">Admin Status</div>
               <div class="text-body-1">{{ userStore.user?.is_superuser ? 'Administrator' : 'Regular User' }}</div>
             </div>
+          </div>
+
+          <div v-if="activeTab === 'devices'">
+            <DevicesPanel />
           </div>
 
           <div v-if="activeTab === 'password'">
