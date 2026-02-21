@@ -32,8 +32,8 @@ const logout = () => {
               <v-list-item>
                 <v-list-item-title>{{ userStore.user.username }}</v-list-item-title>
               </v-list-item>
-              <v-list-item to="/profile">Profile</v-list-item>
               <v-list-item to="/konto">Konto</v-list-item>
+              <v-list-item v-if="userStore.user?.is_superuser" to="/admin">Admin</v-list-item>
               <v-divider></v-divider>
               <v-list-item @click="logout">
                 <v-list-item-title>Logout</v-list-item-title>

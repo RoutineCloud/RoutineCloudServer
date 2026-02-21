@@ -9,6 +9,7 @@ class UserBase(SQLModel):
     email: Optional[EmailStr] = None
     username: Optional[str] = None
     is_active: Optional[bool] = True
+    is_superuser: Optional[bool] = False
 
 
 class UserCreate(UserBase):

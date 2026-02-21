@@ -101,7 +101,7 @@
 <script setup>
 import {onMounted, ref} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
-import {Authentication} from "@/api";
+import {Oauth2} from "@/api";
 
 import {useUserStore} from '@/stores/user.ts'
 
@@ -139,9 +139,9 @@ const authorizeAccount = async () => {
   
   try {
 
-    const {data, error} = await Authentication.authorizeJsonApiOauthAuthJsonPost(
+    const {data, error} = await Oauth2.oauthAuthorize(
         {
-          query: {
+          body: {
             client_id:clientId,
             redirect_uri:redirectUri,
             response_type:responseType,

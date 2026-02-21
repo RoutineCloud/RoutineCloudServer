@@ -2,7 +2,7 @@
 import {onMounted, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useUserStore} from '@/stores/user'
-import {Authentication} from "@/api";
+import {Oauth2} from "@/api";
 
 const route = useRoute()
 const router = useRouter()
@@ -33,7 +33,7 @@ async function submit() {
 
   submitting.value = true
   try {
-    const {data, error} = await Authentication.verifyDeviceCodeApiOauthDeviceVerifyPost({
+    const {data, error} = await Oauth2.oauthDeviceVerify({
       body: {
         user_code: userCode.value.trim(),
         name: "Test device",

@@ -54,16 +54,16 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Link Device - Routine Cloud' }
     },
     {
-        path: "/profile",
-        name: "Profile",
-        component: () => import("../views/ProfilePage.vue"),
-        meta: { title: "Profile - Routine Cloud" }
-    },
-    {
         path: "/konto",
         name: "Konto",
         component: () => import("../views/KontoPage.vue"),
         meta: { title: "Konto - Routine Cloud" }
+    },
+    {
+        path: "/admin",
+        name: "Admin",
+        component: () => import("../views/AdminPage.vue"),
+        meta: { title: "Admin - Routine Cloud" }
     }
 ]
 
