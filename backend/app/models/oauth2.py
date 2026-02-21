@@ -44,6 +44,8 @@ class OAuth2Token(Base, OAuth2TokenMixin):
     id = Column(Integer, primary_key=True)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    access_token = Column(String(1000), unique=True, nullable=False)
+    refresh_token = Column(String(1000), index=True)
 
 
 class OAuth2DeviceCodes(Base):
