@@ -33,7 +33,7 @@ async function submit() {
 
   submitting.value = true
   try {
-    const {data, error} = await Oauth2.deviceVerifyApiOauthDeviceVerifyPost({
+    const {data, error} = await Oauth2.oauthDeviceVerify({
       body: {
         user_code: userCode.value.trim(),
         name: "Test device",

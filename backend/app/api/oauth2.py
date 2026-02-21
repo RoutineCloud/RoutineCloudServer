@@ -3,12 +3,14 @@ from fastapi import Depends
 from fastapi import Request, Response, HTTPException, status
 
 from app.core.oauth2 import authorization
-from app.core.security import OAuth2TokenForm, OAuth2DeviceCodeForm, DeviceVerifyForm, get_current_user
+from app.core.security import OAuth2TokenForm, OAuth2DeviceCodeForm, DeviceVerifyForm, OAuthAuthorizeForm, \
+    get_current_user
 from app.db.session import get_db
 from app.models.device import Device, DeviceStatus
 from app.models.oauth2 import OAuth2DeviceCodes
 from app.models.user import User
-from app.schemas.security import TokenResponse, DeviceCodeResponse, DeviceVerificationResponse, DeviceInfo
+from app.schemas.security import TokenResponse, DeviceCodeResponse, DeviceVerificationResponse, DeviceInfo, \
+    AuthJsonResponse
 
 router = APIRouter(
     prefix="/api/oauth",
@@ -16,7 +18,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.post('/token', response_model=TokenResponse)
+@router.post('/token', response_model=TokenResponse, operation_id="oauth_token")
 async def token(
         request: Request,
         response: Response,
@@ -30,7 +32,27 @@ async def token(
     return TokenResponse(**body)
 
 
-@router.post('/device_authorization', response_model=DeviceCodeResponse)
+@router.post('/authorize', response_model=AuthJsonResponse, operation_id="oauth_authorize")
+async def authorize(
+        request: Request,
+        current_user: User = Depends(get_current_user),
+        form: OAuthAuthorizeForm = Depends(OAuthAuthorizeForm)
+):
+    request.state.oauth2_form = form
+    # We pass the logged-in user to Authlib as the 'grant_user'
+    status, body, headers = authorization.create_authorization_response(
+        request=request, grant_user=current_user
+    )
+    if status == 302:
+        return AuthJsonResponse(redirect_to=headers['Location'])
+
+    # If it's not a redirect (302), it's likely an error handled by Authlib
+    # which we've configured to raise HTTPException in handle_error_response.
+    # But just in case:
+    return AuthJsonResponse(redirect_to="")
+
+
+@router.post('/device_authorization', response_model=DeviceCodeResponse, operation_id="oauth_device_authorization")
 async def device_authorization(
         request: Request,
         response: Response,
@@ -44,7 +66,7 @@ async def device_authorization(
     return DeviceCodeResponse(**body)
 
 
-@router.post('/device/verify', response_model=DeviceVerificationResponse)
+@router.post('/device/verify', response_model=DeviceVerificationResponse, operation_id="oauth_device_verify")
 async def device_verify(
         form: DeviceVerifyForm = Depends(DeviceVerifyForm),
         current_user: User = Depends(get_current_user),
