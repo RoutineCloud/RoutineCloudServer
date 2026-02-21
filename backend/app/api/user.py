@@ -22,7 +22,8 @@ async def get_current_user_me(
     """
     return UserRead(username=current_user.username,
                     email=current_user.email,
-                    is_active=current_user.is_active
+                    is_active=current_user.is_active,
+                    is_superuser=current_user.is_superuser
                     )
 
 @router.post("/change-password", operation_id="users_change_password")
