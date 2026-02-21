@@ -15,8 +15,16 @@ RUN uv sync --no-dev --no-install-project
 # Copy backend code
 COPY backend /app/
 
+# Make prestart script executable
+RUN tr -d '\r' < /app/scripts/prestart.sh > /app/scripts/prestart.sh.tmp && \
+    mv /app/scripts/prestart.sh.tmp /app/scripts/prestart.sh && \
+    chmod +x /app/scripts/prestart.sh
+
 # Expose port
 EXPOSE 8000
+
+# Entrypoint to run migrations and initialization
+ENTRYPOINT ["/app/scripts/prestart.sh"]
 
 # Command to run the application using uv run
 CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

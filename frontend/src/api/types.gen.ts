@@ -546,6 +546,21 @@ export type UserRead = {
 };
 
 /**
+ * UserPasswordUpdate
+ * Schema for updating a user's password.
+ */
+export type UserPasswordUpdate = {
+    /**
+     * Current Password
+     */
+    current_password: string;
+    /**
+     * New Password
+     */
+    new_password: string;
+};
+
+/**
  * ValidationError
  */
 export type ValidationError = {
@@ -790,6 +805,39 @@ export type UsersMeResponses = {
 };
 
 export type UsersMeResponse = UsersMeResponses[keyof UsersMeResponses];
+
+export type UsersChangePasswordData = {
+    body: UserPasswordUpdate;
+    path?: never;
+    query?: never;
+    url: '/api/users/change-password';
+};
+
+export type UsersChangePasswordErrors = {
+    /**
+     * Bad Request
+     */
+    400: unknown;
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UsersChangePasswordError = UsersChangePasswordErrors[keyof UsersChangePasswordErrors];
+
+export type UsersChangePasswordResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type UsersChangePasswordResponse = UsersChangePasswordResponses[keyof UsersChangePasswordResponses];
 
 export type LoginForAccessTokenApiOauthTokenPostData = {
     body?: BodyLoginForAccessTokenApiOauthTokenPost;

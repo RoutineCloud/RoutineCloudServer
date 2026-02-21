@@ -24,7 +24,7 @@ This script initializes the database by creating all tables and setting up an ad
 **Environment Variables:**
 - `ADMIN_USERNAME`: Username for the admin user (default: admin)
 - `ADMIN_EMAIL`: Email for the admin user (default: admin@example.com)
-- `ADMIN_PASSWORD`: Password for the admin user (required, no default)
+- `INIT_ADMIN_PASSWORD`: Password for the admin user (required, no default)
 
 **Usage:**
 ```bash
