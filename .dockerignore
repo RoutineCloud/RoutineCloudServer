@@ -1,0 +1,17 @@
+.git
+.gitignore
+**/node_modules
+**/.pixi
+**/.venv
+**/.idea
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.db
+**/*.sqlite3
+backend/routine_cloud.db
+frontend/dist
+.env.local
+docker-compose.yml
+Dockerfile*

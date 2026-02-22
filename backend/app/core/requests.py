@@ -54,6 +54,8 @@ def form_to_oauth2_request(
             form_data[key] = value
 
     add_if_not_none("grant_type", getattr(token_form, "grant_type", None))
+    add_if_not_none("response_type", getattr(token_form, "response_type", None))
+    add_if_not_none("state", getattr(token_form, "state", None))
     # common
     scope_val = getattr(token_form, "scope", None)
     add_if_not_none("scope", scope_val or None)
@@ -68,6 +70,8 @@ def form_to_oauth2_request(
     add_if_not_none("code", getattr(token_form, "code", None))
     add_if_not_none("redirect_uri", getattr(token_form, "redirect_uri", None))
     add_if_not_none("code_verifier", getattr(token_form, "code_verifier", None))
+    add_if_not_none("code_challenge", getattr(token_form, "code_challenge", None))
+    add_if_not_none("code_challenge_method", getattr(token_form, "code_challenge_method", None))
 
     # refresh
     add_if_not_none("refresh_token", getattr(token_form, "refresh_token", None))
