@@ -88,3 +88,16 @@ class OAuth2DeviceCodes(Base):
 
     def is_expired(self):
         return self.expires_at <= int(time.time())
+
+
+class OAuthConsent(Base):
+    __tablename__ = "oauth_consents"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    client_id = Column(String(48), nullable=False)
+    scopes = Column(Text, nullable=False)  # e.g. "routinecloud profile"
+    revoked_at = Column(Integer, nullable=True)  # Using unix timestamp for consistency or None
+    policy_version = Column(Integer, nullable=True)
+    created_at = Column(Integer, nullable=False, default=lambda: int(time.time()))
+    updated_at = Column(Integer, nullable=False, default=lambda: int(time.time()), onupdate=lambda: int(time.time()))

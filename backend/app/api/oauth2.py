@@ -1,13 +1,18 @@
+from typing import Optional
+from urllib.parse import quote
+
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Request, Response, HTTPException, status
+from fastapi.responses import RedirectResponse
 
+from app.core.config import settings
 from app.core.oauth2 import authorization
-from app.core.security import OAuth2TokenForm, OAuth2DeviceCodeForm, DeviceVerifyForm, OAuthAuthorizeForm, \
-    get_current_user
+from app.core.security import OAuth2TokenForm, OAuth2DeviceCodeForm, DeviceVerifyForm, get_current_user, \
+    get_current_user_optional, OAuthAuthorizeForm
 from app.db.session import get_db
 from app.models.device import Device, DeviceStatus
-from app.models.oauth2 import OAuth2DeviceCodes
+from app.models.oauth2 import OAuth2DeviceCodes, OAuthConsent
 from app.models.user import User
 from app.schemas.security import TokenResponse, DeviceCodeResponse, DeviceVerificationResponse, DeviceInfo, \
     AuthJsonResponse
@@ -29,27 +34,104 @@ async def token(
     status, body, headers = authorization.create_token_response(request=request)
     response.headers.update(dict(headers))
     response.status_code = status
+    
+    # If successful, set a cookie to support browser-based OAuth flows (like Alexa)
+    if status == 200 and "access_token" in body:
+        response.set_cookie(
+            key="access_token",
+            value=body["access_token"],
+            httponly=True,
+            max_age=body.get("expires_in", 3600),
+            samesite="lax",
+            # secure=True,  # Should be True in production with HTTPS
+        )
+    
     return TokenResponse(**body)
 
 
-@router.post('/authorize', response_model=AuthJsonResponse, operation_id="oauth_authorize")
+@router.get('/authorize', operation_id="oauth_authorize")
 async def authorize(
         request: Request,
-        current_user: User = Depends(get_current_user),
-        form: OAuthAuthorizeForm = Depends(OAuthAuthorizeForm)
+        response: Response,
+        form: OAuthAuthorizeForm = Depends(OAuthAuthorizeForm),
+        current_user: Optional[User] = Depends(get_current_user_optional),
+
 ):
     request.state.oauth2_form = form
+
+    # 1. Check login status
+    if not current_user:
+        # Redirect to frontend login page
+        # We pass the full original URL so the frontend can redirect back here
+        return_url = str(request.url)
+        # URL encode the return_url for safety
+        login_url = f"{settings.FRONTEND_URL}{settings.LOGIN_PATH}?redirect={quote(return_url)}"
+        return RedirectResponse(url=login_url)
+
+    # 2. Check if user has already allowed this client and scope
+    session = next(get_db())
+    consent = session.query(OAuthConsent).filter_by(
+        user_id=current_user.id,
+        client_id=form.client_id
+    ).first()
+
+    # If no existing consent or it's revoked, we definitely need consent page
+    if not consent or (consent.revoked_at is not None):
+        # Redirect to frontend consent page
+        # We pass all the OAuth parameters
+        consent_url = f"{settings.FRONTEND_URL}{settings.AUTHORIZE_PATH}?{request.query_params}"
+        return RedirectResponse(url=consent_url)
+
+    # 3. If logged in and already consented, we can issue the code immediately
     # We pass the logged-in user to Authlib as the 'grant_user'
     status, body, headers = authorization.create_authorization_response(
         request=request, grant_user=current_user
     )
     if status == 302:
-        return AuthJsonResponse(redirect_to=headers['Location'])
+        response.headers.update(dict(headers))
+        response.status_code = status
+        return response
+    
+    # Fallback (should not happen if parameters are valid)
+    return RedirectResponse(url=f"{settings.FRONTEND_URL}{settings.AUTHORIZE_PATH}?{request.query_params}")
 
-    # If it's not a redirect (302), it's likely an error handled by Authlib
-    # which we've configured to raise HTTPException in handle_error_response.
-    # But just in case:
-    return AuthJsonResponse(redirect_to="")
+
+@router.post('/consent', response_model=AuthJsonResponse, operation_id="oauth_consent")
+async def oauth_consent(
+        request: Request,
+        form: OAuthAuthorizeForm = Depends(OAuthAuthorizeForm),
+        current_user: User = Depends(get_current_user),
+):
+    request.state.oauth2_form = form
+
+    # 1. Save or update consent
+    session = next(get_db())
+    existing_consent = session.query(OAuthConsent).filter_by(
+        user_id=current_user.id,
+        client_id=form.client_id
+    ).first()
+
+    if existing_consent:
+        existing_consent.scopes = form.scope
+        existing_consent.revoked_at = None
+        session.add(existing_consent)
+    else:
+        new_consent = OAuthConsent(
+            user_id=current_user.id,
+            client_id=form.client_id,
+            scopes=form.scope
+        )
+        session.add(new_consent)
+
+    session.commit()
+
+    # 2. Redirect back to the authorize endpoint to complete the authorization flow
+    # This keeps the final authorization logic centralized in the authorize endpoint.
+    # We use url_for to get the absolute URL to the authorize endpoint.
+    authorize_url = str(request.url_for("authorize"))
+    if request.query_params:
+        authorize_url += f"?{request.query_params}"
+    return AuthJsonResponse(redirect_to=authorize_url)
 
 
 @router.post('/device_authorization', response_model=DeviceCodeResponse, operation_id="oauth_device_authorization")

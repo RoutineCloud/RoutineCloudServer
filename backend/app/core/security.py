@@ -2,9 +2,11 @@ from typing import Annotated
 from typing import Optional, Union
 
 from authlib.jose import JoseError, JsonWebToken
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Query
 from fastapi import Form
+from fastapi import Request
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.security.utils import get_authorization_scheme_param
 from passlib.context import CryptContext
 from sqlmodel import Session, select
 
@@ -33,14 +35,14 @@ class OAuthAuthorizeForm:
     def __init__(
         self,
         *,
-        response_type: Annotated[Optional[str], Form()] = None,
-        client_id: Annotated[Optional[str], Form()] = None,
-        redirect_uri: Annotated[Optional[str], Form()] = None,
-        state: Annotated[Optional[str], Form()] = "",
-        scope: Annotated[str, Form()] = "",
-        code_challenge: Annotated[Optional[str], Form()] = None,
-        code_challenge_method: Annotated[str, Form()] = "S256",
-        client_secret: Annotated[Optional[str], Form()] = None,
+        response_type: Annotated[Optional[str], Query()] = None,
+        client_id: Annotated[Optional[str], Query()] = None,
+        redirect_uri: Annotated[Optional[str], Query()] = None,
+        state: Annotated[Optional[str], Query()] = "",
+        scope: Annotated[str, Query()] = "",
+        code_challenge: Annotated[Optional[str], Query()] = None,
+        code_challenge_method: Annotated[str, Query()] = "S256",
+        client_secret: Annotated[Optional[str], Query()] = None,
     ) -> None:
         self.response_type = response_type
         self.client_id = client_id
@@ -50,6 +52,12 @@ class OAuthAuthorizeForm:
         self.code_challenge = code_challenge
         self.code_challenge_method = code_challenge_method or "S256"
         self.client_secret = client_secret
+        if not self.response_type:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                detail="Missing required field: response_type")
+        if not self.client_id:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                detail="Missing required field: client_id")
 
 class DeviceVerifyForm:
     def __init__(
@@ -171,6 +179,36 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)],
     if user is None:
         raise credentials_exception
     return user
+
+
+async def get_current_user_optional(
+        request: Request,
+        session: Session = Depends(get_db)
+) -> Optional[User]:
+    """
+    Get current user from Bearer token or cookie, but don't raise exception if missing.
+    """
+    authorization: str = request.headers.get("Authorization")
+    scheme, param = get_authorization_scheme_param(authorization)
+    token = None
+    if scheme.lower() == "bearer":
+        token = param
+    else:
+        token = request.cookies.get("access_token")
+
+    if not token:
+        return None
+
+    jwt = JsonWebToken([settings.OAUTH2_JWT_ALG])
+    try:
+        claims = jwt.decode(token, settings.OAUTH2_JWT_KEY)
+        sub = claims.get("sub")
+        if not sub:
+            return None
+        user_id = int(sub)
+        return session.exec(select(User).where(User.id == user_id)).first()
+    except (JoseError, TypeError, ValueError):
+        return None
 
 
 async def get_current_active_user(

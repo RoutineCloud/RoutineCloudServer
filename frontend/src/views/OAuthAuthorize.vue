@@ -139,9 +139,9 @@ const authorizeAccount = async () => {
   
   try {
 
-    const {data, error} = await Oauth2.oauthAuthorize(
+    const {data, error} = await Oauth2.oauthConsent(
         {
-          body: {
+          query: {
             client_id:clientId,
             redirect_uri:redirectUri,
             response_type:responseType,

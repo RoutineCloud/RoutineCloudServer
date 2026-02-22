@@ -30,7 +30,7 @@ export const useUserStore = defineStore('user', () => {
     error.value = null;
 
     try {
-        const {data, error} = await Oauth2.tokenApiOauthTokenPost({
+        const {data, error} = await Oauth2.oauthToken({
             body: {
                 grant_type: "password",
                 client_id: "routine-web",
@@ -45,7 +45,7 @@ export const useUserStore = defineStore('user', () => {
             return false;
         }
 
-      const { access_token,
+         const { access_token,
           token_type,
           refresh_token,
           expires_in
@@ -53,25 +53,31 @@ export const useUserStore = defineStore('user', () => {
 
         localStorage.setItem('auth_token', access_token);
 
-        // Fetch user profile info
-        const {data: userData, error: userError} = await Users.usersMe()
-        if (userError) {
-            console.error('Failed to fetch user profile:', userError);
-            error.value = 'Failed to fetch user profile';
-            return false;
-        }
 
         // Decode JWT token to get user ID
         const decoded = VueJwtDecode.decode(access_token)
         console.log("Decoded token:", decoded)
         
-        const responseUser = {
+        let responseUser = {
+            id: decoded.sub,
+        }
+        user.value = responseUser;
+
+        localStorage.setItem("user", JSON.stringify(responseUser));
+
+        // Fetch user profile info
+        const {data: userData, error: userError} = await Users.usersMe();
+        if (userError) {
+            console.error('Failed to fetch user profile:', userError);
+            error.value = 'Failed to fetch user profile';
+            return false;
+        }
+        responseUser = {
             id: decoded.sub,
             ...userData
         }
         user.value = responseUser;
-
-      localStorage.setItem("user", JSON.stringify(responseUser))
+        localStorage.setItem("user", JSON.stringify(responseUser));
 
       return true;
     } catch (err) {

@@ -143,12 +143,6 @@ def _upsert_client(session: Session, *, client_id: str, client_secret: str | Non
 def seed_oauth_clients() -> None:
     with Session(engine) as session:
         try:
-            # Check if any OAuth2 client exists
-            existing = session.exec(select(OAuth2Client)).first()
-            if existing:
-                logger.info("OAuth2 clients already exist, skipping seeding.")
-                return
-
             web_client_id = "routine-web"
             web_client_metadata = {
                 "client_name": "Routine Cloud Web",
@@ -156,6 +150,7 @@ def seed_oauth_clients() -> None:
                 "response_types": [],
                 "token_endpoint_auth_method": "none",
                 "scope": "",
+                "redirect_uris": [],
             }
 
             device_client_id = "routine-device"
@@ -168,6 +163,20 @@ def seed_oauth_clients() -> None:
                 "response_types": [],
                 "token_endpoint_auth_method": "none",
                 "scope": "",
+                "redirect_uris": [],
+            }
+
+            alex_client_id = "alexa-client"
+            alex_client_metadata = {
+                "client_name": "Alexa Routine Cloud",
+                "grant_types": [ # allowed grant types
+                    "authorization_code",
+                    "refresh_token",
+                ],
+                "response_types": ["code"], # allowed response types
+                "token_endpoint_auth_method": "client_secret_basic", # allowed token endpoint auth methods
+                "scope": "routinecloud",  # allowed scopes
+                "redirect_uris": [], # allowed redirect URIs
             }
 
             _upsert_client(
@@ -181,6 +190,13 @@ def seed_oauth_clients() -> None:
                 client_id=device_client_id,
                 client_secret="",
                 metadata=device_client_metadata,
+            )
+            assert settings.SECRETE_ALEXA_KEY, "SECRETE_ALEXA_KEY environment variable is required"
+            _upsert_client(
+                session,
+                client_id=alex_client_id,
+                client_secret=settings.SECRETE_ALEXA_KEY,
+                metadata=alex_client_metadata,
             )
         except Exception:
             session.rollback()
