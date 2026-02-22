@@ -35,17 +35,6 @@ async def token(
     response.headers.update(dict(headers))
     response.status_code = status
     
-    # If successful, set a cookie to support browser-based OAuth flows (like Alexa)
-    if status == 200 and "access_token" in body:
-        response.set_cookie(
-            key="access_token",
-            value=body["access_token"],
-            httponly=True,
-            max_age=body.get("expires_in", 3600),
-            samesite="lax",
-            # secure=True,  # Should be True in production with HTTPS
-        )
-    
     return TokenResponse(**body)
 
 
