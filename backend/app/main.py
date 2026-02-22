@@ -36,6 +36,7 @@ from app.api.user import router as user_router
 from app.api.oauth2 import router as oauth_router
 from app.api.task import router as task_router
 from app.api.routine import router as routine_router
+from app.api.admin import router as admin_router
 from app.websocket.routes import router as ws_router
 
 # Include API routers
@@ -53,6 +54,7 @@ app.include_router(user_router)
 app.include_router(oauth_router)
 app.include_router(task_router)
 app.include_router(routine_router)
+app.include_router(admin_router)
 app.include_router(ws_router)
 
 @app.get("/")
