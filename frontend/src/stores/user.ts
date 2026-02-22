@@ -1,7 +1,7 @@
 import {defineStore} from 'pinia';
 import {computed, ref} from 'vue';
 import VueJwtDecode from 'vue-jwt-decode';
-import {Oauth2, Users} from "@/api";
+import {Auth, Oauth2, Users} from "@/api";
 
 type User = {
     username: string;
@@ -25,68 +25,79 @@ export const useUserStore = defineStore('user', () => {
   const userProfile = computed(() => user.value);
 
   // Actions
-  async function login(email: string, password: string) {
+  async function authLogin(username: string, password: string) {
     loading.value = true;
     error.value = null;
-
     try {
-        const {data, error} = await Oauth2.oauthToken({
-            body: {
-                grant_type: "password",
-                client_id: "routine-web",
-                username: email,
-                password: password
-            }
-        })
-
-        if (error) {
-            console.error('Login failed:', error);
-            error.value = 'Invalid email or password';
-            return false;
+      const {error: authError} = await Auth.authSessionLogin({
+        body: {
+          username,
+          password
         }
+      });
 
-         const { access_token,
-          token_type,
-          refresh_token,
-          expires_in
-        } = data;
-
-        localStorage.setItem('auth_token', access_token);
-
-
-        // Decode JWT token to get user ID
-        const decoded = VueJwtDecode.decode(access_token)
-        console.log("Decoded token:", decoded)
-        
-        let responseUser = {
-            id: decoded.sub,
-        }
-        user.value = responseUser;
-
-        localStorage.setItem("user", JSON.stringify(responseUser));
-
-        // Fetch user profile info
-        const {data: userData, error: userError} = await Users.usersMe();
-        if (userError) {
-            console.error('Failed to fetch user profile:', userError);
-            error.value = 'Failed to fetch user profile';
-            return false;
-        }
-        responseUser = {
-            id: decoded.sub,
-            ...userData
-        }
-        user.value = responseUser;
-        localStorage.setItem("user", JSON.stringify(responseUser));
-
+      if (authError) {
+        console.error('Auth login failed:', authError);
+        error.value = 'Invalid username or password';
+        return false;
+      }
       return true;
     } catch (err) {
-      console.error('Login failed:', err);
-      error.value = 'Invalid email or password';
+      console.error('Auth login failed:', err);
+      error.value = 'Invalid username or password';
       return false;
     } finally {
       loading.value = false;
     }
+  }
+
+  async function handleCallback(code: string) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const {data, error: tokenError} = await Oauth2.oauthToken({
+        body: {
+          grant_type: "authorization_code",
+          client_id: "routine-web",
+          code,
+          redirect_uri: "http://localhost:3000/callback"
+        }
+      });
+
+      if (tokenError) {
+        console.error('Token exchange failed:', tokenError);
+        error.value = 'Failed to exchange authorization code';
+        return false;
+      }
+
+      const { access_token } = data;
+      localStorage.setItem('auth_token', access_token);
+
+      const decoded = VueJwtDecode.decode(access_token);
+      let responseUser = { id: decoded.sub };
+      user.value = responseUser as User;
+      localStorage.setItem("user", JSON.stringify(responseUser));
+
+      const {data: userData, error: userError} = await Users.usersMe();
+      if (!userError) {
+        responseUser = { id: decoded.sub, ...userData };
+        user.value = responseUser as User;
+        localStorage.setItem("user", JSON.stringify(responseUser));
+      }
+      return true;
+    } catch (err) {
+      console.error('Callback handling failed:', err);
+      error.value = 'Network error during callback';
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function login(email: string, password: string) {
+    // This old login using password grant is now deprecated, 
+    // but kept for compatibility until components are updated.
+    return await authLogin(email, password);
   }
 
   function logout() {
@@ -107,6 +118,8 @@ export const useUserStore = defineStore('user', () => {
     userProfile,
 
     // Actions
+    authLogin,
+    handleCallback,
     login,
     logout,
   };

@@ -89,9 +89,19 @@ const login = async () => {
 
   if(await userStore.login(email.value, password.value)) {
     const redirectPath = route.query.redirect as string;
-    //Check if redirect path start with http or https, if yes make a full redirect
-    if(redirectPath?.startsWith('http')) window.location.assign(redirectPath);
-    router.push(redirectPath || '/');
+    
+    if (redirectPath) {
+      // If we have a redirect path (e.g. from an external OAuth request or navigation guard)
+      if(redirectPath.startsWith('http')) {
+        window.location.assign(redirectPath);
+      } else {
+        router.push(redirectPath);
+      }
+    } else {
+      // Direct login to the application - initiate the OAuth2 Code flow for ourselves
+      const authorizeUrl = `http://localhost:8000/api/oauth/authorize?client_id=routine-web&response_type=code&redirect_uri=${window.location.origin}/callback`;
+      window.location.assign(authorizeUrl);
+    }
   }
   loading.value = false;
 };

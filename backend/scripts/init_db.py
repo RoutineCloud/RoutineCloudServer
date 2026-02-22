@@ -130,7 +130,11 @@ def _upsert_client(session: Session, *, client_id: str, client_secret: str | Non
     existing = session.exec(select(OAuth2Client).where(OAuth2Client.client_id == client_id)).first()
     
     if existing:
-        logger.info(f"OAuth2 client already exists: {client_id}")
+        logger.info(f"Updating existing OAuth2 client: {client_id}")
+        existing.client_secret = client_secret
+        existing.set_client_metadata(metadata)
+        session.add(existing)
+        session.commit()
         return
 
     item = OAuth2Client(client_id=client_id, client_secret=client_secret)
@@ -146,11 +150,11 @@ def seed_oauth_clients() -> None:
             web_client_id = "routine-web"
             web_client_metadata = {
                 "client_name": "Routine Cloud Web",
-                "grant_types": ["password", "refresh_token"],
-                "response_types": [],
+                "grant_types": ["authorization_code", "refresh_token"],
+                "response_types": ["code"],
                 "token_endpoint_auth_method": "none",
                 "scope": "",
-                "redirect_uris": [],
+                "redirect_uris": ["http://localhost:3000/callback"],
             }
 
             device_client_id = "routine-device"
