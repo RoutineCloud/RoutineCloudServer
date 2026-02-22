@@ -214,6 +214,102 @@ export type HttpValidationError = {
 };
 
 /**
+ * OAuth2ClientCreate
+ */
+export type OAuth2ClientCreate = {
+    /**
+     * Client Id
+     */
+    client_id: string;
+    /**
+     * Client Secret
+     */
+    client_secret?: string | null;
+    /**
+     * Client Id Issued At
+     */
+    client_id_issued_at?: number;
+    /**
+     * Client Secret Expires At
+     */
+    client_secret_expires_at?: number;
+    /**
+     * Client Metadata
+     */
+    client_metadata?: {
+        [key: string]: unknown;
+    };
+    /**
+     * User Id
+     */
+    user_id?: number | null;
+};
+
+/**
+ * OAuth2ClientRead
+ */
+export type OAuth2ClientRead = {
+    /**
+     * Client Id
+     */
+    client_id: string;
+    /**
+     * Client Id Issued At
+     */
+    client_id_issued_at?: number;
+    /**
+     * Client Secret Expires At
+     */
+    client_secret_expires_at?: number;
+    /**
+     * Client Metadata
+     */
+    client_metadata?: {
+        [key: string]: unknown;
+    };
+    /**
+     * User Id
+     */
+    user_id?: number | null;
+    /**
+     * Id
+     */
+    id: number;
+};
+
+/**
+ * OAuth2ClientUpdate
+ */
+export type OAuth2ClientUpdate = {
+    /**
+     * Client Id
+     */
+    client_id?: string | null;
+    /**
+     * Client Secret
+     */
+    client_secret?: string | null;
+    /**
+     * Client Id Issued At
+     */
+    client_id_issued_at?: number | null;
+    /**
+     * Client Secret Expires At
+     */
+    client_secret_expires_at?: number | null;
+    /**
+     * Client Metadata
+     */
+    client_metadata?: {
+        [key: string]: unknown;
+    } | null;
+    /**
+     * User Id
+     */
+    user_id?: number | null;
+};
+
+/**
  * RoutineCreate
  */
 export type RoutineCreate = {
@@ -1253,6 +1349,159 @@ export type RoutinesEndResponses = {
      */
     202: unknown;
 };
+
+export type AdminListOauthClientsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/admin/oauth/clients';
+};
+
+export type AdminListOauthClientsErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type AdminListOauthClientsResponses = {
+    /**
+     * Response Admin List Oauth Clients
+     * Successful Response
+     */
+    200: Array<OAuth2ClientRead>;
+};
+
+export type AdminListOauthClientsResponse = AdminListOauthClientsResponses[keyof AdminListOauthClientsResponses];
+
+export type AdminCreateOauthClientData = {
+    body: OAuth2ClientCreate;
+    path?: never;
+    query?: never;
+    url: '/api/admin/oauth/clients';
+};
+
+export type AdminCreateOauthClientErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AdminCreateOauthClientError = AdminCreateOauthClientErrors[keyof AdminCreateOauthClientErrors];
+
+export type AdminCreateOauthClientResponses = {
+    /**
+     * Successful Response
+     */
+    200: OAuth2ClientRead;
+};
+
+export type AdminCreateOauthClientResponse = AdminCreateOauthClientResponses[keyof AdminCreateOauthClientResponses];
+
+export type AdminDeleteOauthClientData = {
+    body?: never;
+    path: {
+        /**
+         * Client Id
+         */
+        client_id: number;
+    };
+    query?: never;
+    url: '/api/admin/oauth/clients/{client_id}';
+};
+
+export type AdminDeleteOauthClientErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AdminDeleteOauthClientError = AdminDeleteOauthClientErrors[keyof AdminDeleteOauthClientErrors];
+
+export type AdminDeleteOauthClientResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type AdminGetOauthClientData = {
+    body?: never;
+    path: {
+        /**
+         * Client Id
+         */
+        client_id: number;
+    };
+    query?: never;
+    url: '/api/admin/oauth/clients/{client_id}';
+};
+
+export type AdminGetOauthClientErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AdminGetOauthClientError = AdminGetOauthClientErrors[keyof AdminGetOauthClientErrors];
+
+export type AdminGetOauthClientResponses = {
+    /**
+     * Successful Response
+     */
+    200: OAuth2ClientRead;
+};
+
+export type AdminGetOauthClientResponse = AdminGetOauthClientResponses[keyof AdminGetOauthClientResponses];
+
+export type AdminUpdateOauthClientData = {
+    body: OAuth2ClientUpdate;
+    path: {
+        /**
+         * Client Id
+         */
+        client_id: number;
+    };
+    query?: never;
+    url: '/api/admin/oauth/clients/{client_id}';
+};
+
+export type AdminUpdateOauthClientErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AdminUpdateOauthClientError = AdminUpdateOauthClientErrors[keyof AdminUpdateOauthClientErrors];
+
+export type AdminUpdateOauthClientResponses = {
+    /**
+     * Successful Response
+     */
+    200: OAuth2ClientRead;
+};
+
+export type AdminUpdateOauthClientResponse = AdminUpdateOauthClientResponses[keyof AdminUpdateOauthClientResponses];
 
 export type RootGetData = {
     body?: never;
