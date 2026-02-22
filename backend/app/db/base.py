@@ -10,6 +10,7 @@ from app.models.oauth2 import (
     OAuth2AuthorizationCode,  # noqa: F401
     OAuth2Token,  # noqa: F401
     OAuth2DeviceCodes,  # noqa: F401
+    OAuthConsent,  # noqa: F401
 )
 from app.models.routine import Routine  # noqa: F401
 from app.models.routine_task import RoutineTask  # noqa: F401
@@ -28,4 +29,5 @@ __all__ = [
     "OAuth2AuthorizationCode",
     "OAuth2Token",
     "OAuth2DeviceCodes",
+    "OAuthConsent",
 ]

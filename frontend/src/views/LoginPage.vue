@@ -89,6 +89,8 @@ const login = async () => {
 
   if(await userStore.login(email.value, password.value)) {
     const redirectPath = route.query.redirect as string;
+    //Check if redirect path start with http or https, if yes make a full redirect
+    if(redirectPath?.startsWith('http')) window.location.assign(redirectPath);
     router.push(redirectPath || '/');
   }
   loading.value = false;

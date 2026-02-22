@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     OAUTH_ALLOWED_REDIRECT_URIS: List[AnyHttpUrl] = []
     # Device Authorization Flow verification page (frontend)
     OAUTH_DEVICE_VERIFICATION_URI: AnyHttpUrl = "http://localhost:3000/device"
+    
+    # Frontend URL for redirections
+    FRONTEND_URL: str = "http://localhost:3000"
+    LOGIN_PATH: str = "/login"
+    AUTHORIZE_PATH: str = "/oauth/authorize"
 
     # Alexa integration settings
     # TODO Why do I need this?
