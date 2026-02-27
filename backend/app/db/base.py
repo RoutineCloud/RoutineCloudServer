@@ -4,6 +4,7 @@ Used by app.main and scripts.init_db for side-effect registration and admin view
 """
 from sqlmodel import SQLModel  # noqa: F401
 
+from app.models.auth import BrowserSession  # noqa: F401
 from app.models.device import Device  # noqa: F401
 from app.models.oauth2 import (
     OAuth2Client,  # noqa: F401
@@ -21,6 +22,7 @@ from app.models.user import User  # noqa: F401
 __all__ = [
     "SQLModel",
     "User",
+    "BrowserSession",
     "Device",
     "Task",
     "Routine",

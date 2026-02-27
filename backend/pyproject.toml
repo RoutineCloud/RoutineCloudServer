@@ -24,6 +24,9 @@ dependencies = [
     "pyrootutils>=1.0.4,<2",
     "requests",
     "sqladmin",
+    "pyotp",
+    "qrcode[pil]",
+    "itsdangerous>=2.2.0",
 ]
 
 [tool.uv]

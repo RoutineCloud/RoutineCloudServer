@@ -5,15 +5,17 @@ from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Request, Response, HTTPException, status
 from fastapi.responses import RedirectResponse
+from sqlmodel import Session
 
 from app.core.config import settings
 from app.core.oauth2 import authorization
-from app.core.security import OAuth2TokenForm, OAuth2DeviceCodeForm, DeviceVerifyForm, get_current_user, \
-    get_current_user_optional, OAuthAuthorizeForm
+from app.core.security import OAuth2TokenForm, OAuth2DeviceCodeForm, DeviceVerifyForm, OAuthAuthorizeForm, \
+    get_session_user
 from app.db.session import get_db
 from app.models.device import Device, DeviceStatus
-from app.models.oauth2 import OAuth2DeviceCodes, OAuthConsent
+from app.models.oauth2 import OAuth2DeviceCodes, OAuthConsent, OAuth2Client
 from app.models.user import User
+from app.schemas.oauth2 import OAuth2ConsentInfo, OAuth2ScopeInfo
 from app.schemas.security import TokenResponse, DeviceCodeResponse, DeviceVerificationResponse, DeviceInfo, \
     AuthJsonResponse
 
@@ -23,12 +25,22 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+SCOPE_MAPPING = {
+    "routinecloud": {
+        "name": "Access Routine Cloud",
+        "description": "Full access to your Routine Cloud account, including routines and devices."
+    }
+}
+
+
 @router.post('/token', response_model=TokenResponse, operation_id="oauth_token")
 async def token(
         request: Request,
         response: Response,
+        db: Session = Depends(get_db),
         token_form: OAuth2TokenForm = Depends(OAuth2TokenForm)
         ):
+    request.state.db = db
     request.state.oauth2_form = token_form
 
     status, body, headers = authorization.create_token_response(request=request)
@@ -42,10 +54,12 @@ async def token(
 async def authorize(
         request: Request,
         response: Response,
+        db: Session = Depends(get_db),
         form: OAuthAuthorizeForm = Depends(OAuthAuthorizeForm),
-        current_user: Optional[User] = Depends(get_current_user_optional),
+        current_user: Optional[User] = Depends(get_session_user),
 
 ):
+    request.state.db = db
     request.state.oauth2_form = form
 
     # 1. Check login status
@@ -58,8 +72,7 @@ async def authorize(
         return RedirectResponse(url=login_url)
 
     # 2. Check if user has already allowed this client and scope
-    session = next(get_db())
-    consent = session.query(OAuthConsent).filter_by(
+    consent = db.query(OAuthConsent).filter_by(
         user_id=current_user.id,
         client_id=form.client_id
     ).first()
@@ -85,17 +98,57 @@ async def authorize(
     return RedirectResponse(url=f"{settings.FRONTEND_URL}{settings.AUTHORIZE_PATH}?{request.query_params}")
 
 
+@router.get('/consent', response_model=OAuth2ConsentInfo, operation_id="oauth_get_consent_info")
+async def get_consent_info(
+        request: Request,
+        db: Session = Depends(get_db),
+        form: OAuthAuthorizeForm = Depends(OAuthAuthorizeForm),
+        current_user: User = Depends(get_session_user),
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not logged in")
+
+    client: OAuth2Client = db.query(OAuth2Client).filter_by(client_id=form.client_id).first()
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    requested_scopes = form.scope.split()
+    scopes_info = []
+    for s in requested_scopes:
+        if s in SCOPE_MAPPING:
+            scopes_info.append(OAuth2ScopeInfo(
+                id=s,
+                name=SCOPE_MAPPING[s]["name"],
+                description=SCOPE_MAPPING[s]["description"]
+            ))
+        else:
+            # Fallback for unknown scopes
+            scopes_info.append(OAuth2ScopeInfo(
+                id=s,
+                name=s,
+                description=f"Permission to access {s}"
+            ))
+
+    return OAuth2ConsentInfo(
+        client_name=client.client_name,
+        scopes=scopes_info
+    )
+
+
 @router.post('/consent', response_model=AuthJsonResponse, operation_id="oauth_consent")
 async def oauth_consent(
         request: Request,
+        db: Session = Depends(get_db),
         form: OAuthAuthorizeForm = Depends(OAuthAuthorizeForm),
-        current_user: User = Depends(get_current_user),
+        current_user: User = Depends(get_session_user),
 ):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not logged in")
+    request.state.db = db
     request.state.oauth2_form = form
 
     # 1. Save or update consent
-    session = next(get_db())
-    existing_consent = session.query(OAuthConsent).filter_by(
+    existing_consent = db.query(OAuthConsent).filter_by(
         user_id=current_user.id,
         client_id=form.client_id
     ).first()
@@ -103,16 +156,16 @@ async def oauth_consent(
     if existing_consent:
         existing_consent.scopes = form.scope
         existing_consent.revoked_at = None
-        session.add(existing_consent)
+        db.add(existing_consent)
     else:
         new_consent = OAuthConsent(
             user_id=current_user.id,
             client_id=form.client_id,
             scopes=form.scope
         )
-        session.add(new_consent)
+        db.add(new_consent)
 
-    session.commit()
+    db.commit()
 
     # 2. Redirect back to the authorize endpoint to complete the authorization flow
     # This keeps the final authorization logic centralized in the authorize endpoint.
@@ -127,8 +180,10 @@ async def oauth_consent(
 async def device_authorization(
         request: Request,
         response: Response,
+        db: Session = Depends(get_db),
         form: OAuth2DeviceCodeForm = Depends(OAuth2DeviceCodeForm)
 ):
+    request.state.db = db
     request.state.oauth2_form = form
     status_code, body, headers = authorization.create_endpoint_response('device_authorization', request=request)
     response.headers.update(dict(headers))
@@ -139,27 +194,29 @@ async def device_authorization(
 
 @router.post('/device/verify', response_model=DeviceVerificationResponse, operation_id="oauth_device_verify")
 async def device_verify(
+        db: Session = Depends(get_db),
         form: DeviceVerifyForm = Depends(DeviceVerifyForm),
-        current_user: User = Depends(get_current_user),
+        current_user: User = Depends(get_session_user),
 ):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not logged in")
     if not form.user_code:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="user_code is required")
 
-    session = next(get_db())
-    cred = session.query(OAuth2DeviceCodes).filter_by(user_code=form.user_code).first()
+    cred = db.query(OAuth2DeviceCodes).filter_by(user_code=form.user_code).first()
     if not cred:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="invalid_user_code")
 
     if cred.is_expired():
-        session.delete(cred)
-        session.commit()
+        db.delete(cred)
+        db.commit()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="code_expired")
 
     # attach decision to this credential
     cred.user_id = current_user.id
     cred.status = 'granted' if form.approve else 'denied'
-    session.add(cred)
-    session.commit()
+    db.add(cred)
+    db.commit()
     if not form.approve:
         return DeviceVerificationResponse(status='denied', client_id=cred.client_id, scope=cred.scope)
 
@@ -170,15 +227,15 @@ async def device_verify(
         # Also, if a Device with same uuid exists for current user, delete it to avoid duplicates
         try:
             existing_devices = (
-                session.query(Device)
+                db.query(Device)
                 .filter(Device.device_id == cred.device_uuid, Device.owner_id == current_user.id)
                 .all()
             )
             for d in existing_devices:
-                session.delete(d)
-            session.commit()
+                db.delete(d)
+            db.commit()
         except Exception:
-            session.rollback()
+            db.rollback()
 
     # Create a linked Device in DB for traceability
     dev = Device(
@@ -189,9 +246,9 @@ async def device_verify(
         owner_id=current_user.id,
         device_id=cred.device_uuid or "",
     )
-    session.add(dev)
-    session.commit()
-    session.refresh(dev)
+    db.add(dev)
+    db.commit()
+    db.refresh(dev)
 
     return DeviceVerificationResponse(
         status='authorized',

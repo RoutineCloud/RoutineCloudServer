@@ -3,7 +3,6 @@ import time
 from authlib.oauth2.rfc8628 import DeviceAuthorizationEndpoint as _DeviceAuthorizationEndpoint
 
 from app.core.config import settings
-from app.db.session import get_db
 from app.models.oauth2 import OAuth2DeviceCodes
 
 
@@ -16,7 +15,7 @@ class DeviceAuthorizationEndpoint(_DeviceAuthorizationEndpoint):
 
     def save_device_credential(self, client_id, scope, data):
         # data includes: device_code, user_code, expires_in, interval
-        session = next(get_db())
+        session = self.request.db
         expires_at = int(time.time()) + int(data.get("expires_in", 1800))
         item = OAuth2DeviceCodes(
             client_id=client_id,

@@ -26,3 +26,14 @@ class OAuth2ClientRead(OAuth2ClientBase):
 
     class Config:
         from_attributes = True
+
+
+class OAuth2ScopeInfo(BaseModel):
+    id: str
+    name: str
+    description: str
+
+
+class OAuth2ConsentInfo(BaseModel):
+    client_name: str
+    scopes: list[OAuth2ScopeInfo]

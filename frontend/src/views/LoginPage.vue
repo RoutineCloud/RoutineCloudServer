@@ -47,6 +47,12 @@
                         Sign In
                       </v-btn>
                     </v-form>
+                    <v-alert
+                        closable
+                        v-model="error"
+                        v-if="error"
+                        type="error">{{ error }}
+                    </v-alert>
                   </v-card-text>
                   <v-divider class="my-3"></v-divider>
                   <v-card-actions class="justify-center">
@@ -80,6 +86,7 @@ const loading = ref(false);
 const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
+const error = ref('');
 const userStore = useUserStore()
 
 const login = async () => {
@@ -87,11 +94,22 @@ const login = async () => {
   
   loading.value = true;
 
-  if(await userStore.login(email.value, password.value)) {
+  if(await userStore.authLogin(email.value, password.value)) {
     const redirectPath = route.query.redirect as string;
-    //Check if redirect path start with http or https, if yes make a full redirect
-    if(redirectPath?.startsWith('http')) window.location.assign(redirectPath);
-    router.push(redirectPath || '/');
+    
+    if (redirectPath) {
+      // If we have a redirect path (e.g. from an external OAuth request or navigation guard)
+      if(redirectPath.startsWith('http')) {
+        window.location.assign(redirectPath);
+      } else {
+        router.push(redirectPath);
+      }
+    } else {
+      // Direct login to the application - no longer need OAuth2 Code flow for ourselves
+      router.push('/');
+    }
+  } else {
+    error.value = 'Invalid credentials';
   }
   loading.value = false;
 };

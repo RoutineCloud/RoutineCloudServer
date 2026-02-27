@@ -10,7 +10,7 @@
             </v-card-title>
             
             <v-card-text>
-              <div v-if="!userStore.isAuthenticated" class="text-center my-5">
+              <div v-if="!userStore.isAuthenticated && !isSessionAuthenticated" class="text-center my-5">
                 <p class="text-body-1 mb-5">
                   You need to sign in to your Routine Cloud account before linking with Alexa.
                 </p>
@@ -39,36 +39,30 @@
                     <strong>{{ clientName }}</strong> is requesting permission to access your Routine Cloud account.
                   </p>
                   
-                  <p class="text-body-1 mb-4">
-                    This will allow you to control your routines and devices using Alexa voice commands.
-                  </p>
-                  
                   <v-divider class="my-5"></v-divider>
                   
                   <p class="text-subtitle-1 font-weight-bold mb-2">
                     The following permissions will be granted:
                   </p>
                   
-                  <v-list density="compact" class="bg-transparent">
-                    <v-list-item>
+                  <v-list v-if="consentInfo" density="compact" class="bg-transparent">
+                    <v-list-item v-for="s in consentInfo.scopes" :key="s.id">
                       <template v-slot:prepend>
                         <v-icon color="success">mdi-check-circle</v-icon>
                       </template>
-                      <v-list-item-title>View your routines</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item>
-                      <template v-slot:prepend>
-                        <v-icon color="success">mdi-check-circle</v-icon>
-                      </template>
-                      <v-list-item-title>Control your devices</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item>
-                      <template v-slot:prepend>
-                        <v-icon color="success">mdi-check-circle</v-icon>
-                      </template>
-                      <v-list-item-title>Execute your routines</v-list-item-title>
+                      <v-list-item-title>{{ s.name }}</v-list-item-title>
+                      <v-list-item-subtitle v-if="s.description">{{ s.description }}</v-list-item-subtitle>
                     </v-list-item>
                   </v-list>
+                  
+                  <div v-else-if="!loading && !error" class="text-center py-4">
+                    <p class="text-body-2 text-grey">No specific permissions requested.</p>
+                  </div>
+                  
+                  <div v-else-if="loading" class="text-center py-4">
+                    <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                    <p class="text-caption mt-2">Loading permissions...</p>
+                  </div>
                 </div>
                 
                 <v-card-actions class="justify-center pb-5">
@@ -101,7 +95,7 @@
 <script setup>
 import {onMounted, ref} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
-import {Oauth2} from "@/api";
+import {Auth, Oauth2} from "@/api";
 
 import {useUserStore} from '@/stores/user.ts'
 
@@ -110,9 +104,11 @@ const route = useRoute();
 const router = useRouter();
 
 // State variables
-const clientName = ref('Amazon Alexa');
+const consentInfo = ref(null);
+const clientName = ref('Loading...');
 const loading = ref(false);
 const error = ref(null);
+const isSessionAuthenticated = ref(false);
 
 // Get OAuth parameters from URL
 const clientId = route.query.client_id;
@@ -123,10 +119,58 @@ const scope = route.query.scope;
 const challenge = route.query.code_challenge;
 const challengeMethod = route.query.code_challenge_method;
 
-onMounted(() => {
+onMounted(async () => {
   // Validate OAuth parameters
   validateOAuthParameters();
+  
+  // Check if session authenticated if not token authenticated
+  if (!userStore.isAuthenticated) {
+    try {
+      const { data, error: meError } = await Auth.authSessionMe();
+      if (!meError) {
+        isSessionAuthenticated.value = true;
+      }
+    } catch (err) {
+      console.warn('Session check failed:', err);
+    }
+  }
+
+  // Fetch real consent information
+  if (clientId && !error.value) {
+    await fetchConsentInfo();
+  }
 });
+
+const fetchConsentInfo = async () => {
+  loading.value = true;
+  try {
+    const { data, error: fetchError } = await Oauth2.oauthGetConsentInfo({
+      query: {
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        response_type: responseType,
+        scope: scope,
+        state: state,
+        code_challenge: challenge,
+        code_challenge_method: challengeMethod,
+      }
+    });
+
+    if (fetchError) {
+      error.value = 'Failed to load consent information.';
+      clientName.value = 'Unknown Client';
+    } else {
+      consentInfo.value = data;
+      clientName.value = data.client_name;
+    }
+  } catch (err) {
+    console.error('Failed to fetch consent info:', err);
+    error.value = 'Failed to load consent information.';
+    clientName.value = 'Unknown Client';
+  } finally {
+    loading.value = false;
+  }
+};
 
 const validateOAuthParameters = () => {
   if (!clientId || !redirectUri || !responseType) {
