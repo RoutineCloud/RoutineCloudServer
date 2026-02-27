@@ -54,12 +54,6 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'Link Device - Routine Cloud' }
     },
     {
-        path: '/callback',
-        name: 'OAuthCallback',
-        component: () => import('../views/CallbackPage.vue'),
-        meta: { title: 'Logging in... - Routine Cloud' }
-    },
-    {
         path: "/konto",
         name: "Konto",
         component: () => import("../views/KontoPage.vue"),

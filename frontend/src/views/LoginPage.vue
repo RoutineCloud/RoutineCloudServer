@@ -47,6 +47,12 @@
                         Sign In
                       </v-btn>
                     </v-form>
+                    <v-alert
+                        closable
+                        v-model="error"
+                        v-if="error"
+                        type="error">{{ error }}
+                    </v-alert>
                   </v-card-text>
                   <v-divider class="my-3"></v-divider>
                   <v-card-actions class="justify-center">
@@ -80,6 +86,7 @@ const loading = ref(false);
 const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
+const error = ref('');
 const userStore = useUserStore()
 
 const login = async () => {
@@ -87,7 +94,7 @@ const login = async () => {
   
   loading.value = true;
 
-  if(await userStore.login(email.value, password.value)) {
+  if(await userStore.authLogin(email.value, password.value)) {
     const redirectPath = route.query.redirect as string;
     
     if (redirectPath) {
@@ -98,10 +105,11 @@ const login = async () => {
         router.push(redirectPath);
       }
     } else {
-      // Direct login to the application - initiate the OAuth2 Code flow for ourselves
-      const authorizeUrl = `http://localhost:8000/api/oauth/authorize?client_id=routine-web&response_type=code&redirect_uri=${window.location.origin}/callback`;
-      window.location.assign(authorizeUrl);
+      // Direct login to the application - no longer need OAuth2 Code flow for ourselves
+      router.push('/');
     }
+  } else {
+    error.value = 'Invalid credentials';
   }
   loading.value = false;
 };

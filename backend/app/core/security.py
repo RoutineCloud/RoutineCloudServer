@@ -1,14 +1,12 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Annotated
 from typing import Optional, Union
 
-from authlib.common.security import generate_token
 from authlib.jose import JoseError, JsonWebToken
 from fastapi import Depends, HTTPException, status, Query
 from fastapi import Form
 from fastapi import Request
 from fastapi.security import OAuth2PasswordBearer
-from fastapi.security.utils import get_authorization_scheme_param
 from passlib.context import CryptContext
 from sqlmodel import Session, select
 
@@ -19,7 +17,7 @@ from app.models.user import User
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 class OAuth2DeviceCodeForm:
     def __init__(
@@ -194,49 +192,62 @@ async def get_session_user(
     return session.exec(select(User).where(User.id == browser_session.user_id)).first()
 
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)],
-                           session: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
+async def get_current_user(
+    request: Request,
+    token: Annotated[Optional[str], Depends(oauth2_scheme)] = None,
+    session: Session = Depends(get_db)
+):
+    # 1. Try session
+    user = await get_session_user(request, session)
+    if user:
+        return user
+
+    # 2. Try token
+    if token:
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        jwt = JsonWebToken([settings.OAUTH2_JWT_ALG])
+        try:
+            #TODO check if adding claims_options is good
+            # Check if validate should be called
+            claims = jwt.decode(token, settings.OAUTH2_JWT_KEY)
+            sub = claims.get("sub")
+            if not sub:
+                raise credentials_exception
+            
+            user_id = int(sub)
+            user = session.exec(select(User).where(User.id == user_id)).first()
+            if user:
+                return user
+            raise credentials_exception
+        except (JoseError, TypeError, ValueError):
+            raise credentials_exception
+
+    raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Not authenticated",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    jwt = JsonWebToken([settings.OAUTH2_JWT_ALG])
-    try:
-        #TODO check if adding claims_options is good
-        # Check if validate should be called
-        claims = jwt.decode(token, settings.OAUTH2_JWT_KEY)
-        sub = claims.get("sub")
-        if not sub:
-            raise credentials_exception
-    except JoseError:
-        raise credentials_exception
-
-    try:
-        user_id = int(sub)
-    except (TypeError, ValueError):
-        raise credentials_exception
-
-    user = session.exec(select(User).where(User.id == user_id)).first()
-
-    if user is None:
-        raise credentials_exception
-    return user
 
 
 async def get_current_user_optional(
         request: Request,
-        session: Session = Depends(get_db)
+        session: Session = Depends(get_db),
+        token: Annotated[Optional[str], Depends(oauth2_scheme)] = None,
 ) -> Optional[User]:
     """
-    Get current user from Bearer token or cookie, but don't raise exception if missing.
+    Get current user from Bearer token or session, but don't raise exception if missing.
     """
-    authorization: str = request.headers.get("Authorization")
-    scheme, param = get_authorization_scheme_param(authorization)
-    token = None
-    if scheme.lower() == "bearer":
-        token = param
-    else:
+    # 1. Try session
+    user = await get_session_user(request, session)
+    if user:
+        return user
+
+    # 2. Try token
+    if not token:
         token = request.cookies.get("access_token")
 
     if not token:
