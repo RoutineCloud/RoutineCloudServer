@@ -52,7 +52,9 @@ class AuthorizationServer(_AuthorizationServer):
             return request
 
         token_form: OAuth2TokenForm = getattr(request.state, "oauth2_form")
-        return form_to_oauth2_request(request, token_form)
+        oauth2_request = form_to_oauth2_request(request, token_form)
+        oauth2_request.db = getattr(request.state, "db", None)
+        return oauth2_request
 
     def create_json_request(self, request: Request) -> JsonRequest:
         if isinstance(request, JsonRequest):
@@ -88,7 +90,7 @@ def create_query_client_func(client_model):
 
 def create_save_token_func(token_model):
     def save_token(token, request):
-        session = next(get_db())
+        session = getattr(request, "db", None) or next(get_db())
         if request.user:
             user_id = request.user.id
         else:

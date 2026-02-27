@@ -11,6 +11,20 @@ export type AuthJsonResponse = {
 };
 
 /**
+ * Body_auth_session_login
+ */
+export type BodyAuthSessionLogin = {
+    /**
+     * Username
+     */
+    username: string;
+    /**
+     * Password
+     */
+    password: string;
+};
+
+/**
  * Body_oauth_device_authorization
  */
 export type BodyOauthDeviceAuthorization = {
@@ -214,38 +228,6 @@ export type HttpValidationError = {
 };
 
 /**
- * OAuth2ClientCreate
- */
-export type OAuth2ClientCreate = {
-    /**
-     * Client Id
-     */
-    client_id: string;
-    /**
-     * Client Secret
-     */
-    client_secret?: string | null;
-    /**
-     * Client Id Issued At
-     */
-    client_id_issued_at?: number;
-    /**
-     * Client Secret Expires At
-     */
-    client_secret_expires_at?: number;
-    /**
-     * Client Metadata
-     */
-    client_metadata?: {
-        [key: string]: unknown;
-    };
-    /**
-     * User Id
-     */
-    user_id?: number | null;
-};
-
-/**
  * OAuth2ClientRead
  */
 export type OAuth2ClientRead = {
@@ -307,6 +289,38 @@ export type OAuth2ClientUpdate = {
      * User Id
      */
     user_id?: number | null;
+};
+
+/**
+ * OAuth2ConsentInfo
+ */
+export type OAuth2ConsentInfo = {
+    /**
+     * Client Name
+     */
+    client_name: string;
+    /**
+     * Scopes
+     */
+    scopes: Array<OAuth2ScopeInfo>;
+};
+
+/**
+ * OAuth2ScopeInfo
+ */
+export type OAuth2ScopeInfo = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Description
+     */
+    description: string;
 };
 
 /**
@@ -739,6 +753,56 @@ export type UsersCreateResponses = {
 
 export type UsersCreateResponse = UsersCreateResponses[keyof UsersCreateResponses];
 
+export type AuthSessionLoginData = {
+    body: BodyAuthSessionLogin;
+    path?: never;
+    query?: never;
+    url: '/api/auth';
+};
+
+export type AuthSessionLoginErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AuthSessionLoginError = AuthSessionLoginErrors[keyof AuthSessionLoginErrors];
+
+export type AuthSessionLoginResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type AuthSessionMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/me';
+};
+
+export type AuthSessionMeErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+};
+
+export type AuthSessionMeResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserRead;
+};
+
+export type AuthSessionMeResponse = AuthSessionMeResponses[keyof AuthSessionMeResponses];
+
 export type OauthTokenData = {
     body?: BodyOauthToken;
     path?: never;
@@ -827,6 +891,68 @@ export type OauthAuthorizeResponses = {
      */
     200: unknown;
 };
+
+export type OauthGetConsentInfoData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Response Type
+         */
+        response_type?: string | null;
+        /**
+         * Client Id
+         */
+        client_id?: string | null;
+        /**
+         * Redirect Uri
+         */
+        redirect_uri?: string | null;
+        /**
+         * State
+         */
+        state?: string | null;
+        /**
+         * Scope
+         */
+        scope?: string;
+        /**
+         * Code Challenge
+         */
+        code_challenge?: string | null;
+        /**
+         * Code Challenge Method
+         */
+        code_challenge_method?: string;
+        /**
+         * Client Secret
+         */
+        client_secret?: string | null;
+    };
+    url: '/api/oauth/consent';
+};
+
+export type OauthGetConsentInfoErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type OauthGetConsentInfoError = OauthGetConsentInfoErrors[keyof OauthGetConsentInfoErrors];
+
+export type OauthGetConsentInfoResponses = {
+    /**
+     * Successful Response
+     */
+    200: OAuth2ConsentInfo;
+};
+
+export type OauthGetConsentInfoResponse = OauthGetConsentInfoResponses[keyof OauthGetConsentInfoResponses];
 
 export type OauthConsentData = {
     body?: never;
@@ -1373,35 +1499,6 @@ export type AdminListOauthClientsResponses = {
 };
 
 export type AdminListOauthClientsResponse = AdminListOauthClientsResponses[keyof AdminListOauthClientsResponses];
-
-export type AdminCreateOauthClientData = {
-    body: OAuth2ClientCreate;
-    path?: never;
-    query?: never;
-    url: '/api/admin/oauth/clients';
-};
-
-export type AdminCreateOauthClientErrors = {
-    /**
-     * Not found
-     */
-    404: unknown;
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type AdminCreateOauthClientError = AdminCreateOauthClientErrors[keyof AdminCreateOauthClientErrors];
-
-export type AdminCreateOauthClientResponses = {
-    /**
-     * Successful Response
-     */
-    200: OAuth2ClientRead;
-};
-
-export type AdminCreateOauthClientResponse = AdminCreateOauthClientResponses[keyof AdminCreateOauthClientResponses];
 
 export type AdminDeleteOauthClientData = {
     body?: never;

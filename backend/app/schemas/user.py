@@ -32,4 +32,4 @@ class UserPasswordUpdate(SQLModel):
 
 class UserRead(UserBase):
     """Schema for returning user data."""
-    pass
+    id: int

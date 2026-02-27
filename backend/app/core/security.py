@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated
 from typing import Optional, Union
 
@@ -6,17 +7,17 @@ from fastapi import Depends, HTTPException, status, Query
 from fastapi import Form
 from fastapi import Request
 from fastapi.security import OAuth2PasswordBearer
-from fastapi.security.utils import get_authorization_scheme_param
 from passlib.context import CryptContext
 from sqlmodel import Session, select
 
 from app.core.config import settings
 from app.db.session import get_db
+from app.models.auth import BrowserSession
 from app.models.user import User
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 class OAuth2DeviceCodeForm:
     def __init__(
@@ -151,49 +152,102 @@ def get_password_hash(password: str) -> str:
     """
     return pwd_context.hash(password)
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)],
-                           session: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
+async def get_session_user(
+    request: Request,
+    session: Session = Depends(get_db)
+) -> Optional[User]:
+    """
+    Get user from database-backed browser session.
+    
+    Current session cookie stores:
+    - session_id: Public ID of the BrowserSession
+    - session_secret: Secret token to match against session_secret_hash
+    """
+    session_id = request.session.get("session_id")
+    session_secret = request.session.get("session_secret")
+    
+    if not session_id or not session_secret:
+        return None
+        
+    browser_session = session.exec(
+        select(BrowserSession).where(
+            BrowserSession.session_id == session_id,
+            BrowserSession.revoked_at == None,
+            BrowserSession.expires_at > datetime.utcnow()
+        )
+    ).first()
+    
+    if not browser_session:
+        return None
+        
+    # Verify secret
+    if not verify_password(session_secret, browser_session.session_secret_hash):
+        return None
+        
+    # Update last_seen_at
+    browser_session.last_seen_at = datetime.utcnow()
+    session.add(browser_session)
+    session.commit()
+    
+    return session.exec(select(User).where(User.id == browser_session.user_id)).first()
+
+
+async def get_current_user(
+    request: Request,
+    token: Annotated[Optional[str], Depends(oauth2_scheme)] = None,
+    session: Session = Depends(get_db)
+):
+    # 1. Try session
+    user = await get_session_user(request, session)
+    if user:
+        return user
+
+    # 2. Try token
+    if token:
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        jwt = JsonWebToken([settings.OAUTH2_JWT_ALG])
+        try:
+            #TODO check if adding claims_options is good
+            # Check if validate should be called
+            claims = jwt.decode(token, settings.OAUTH2_JWT_KEY)
+            sub = claims.get("sub")
+            if not sub:
+                raise credentials_exception
+            
+            user_id = int(sub)
+            user = session.exec(select(User).where(User.id == user_id)).first()
+            if user:
+                return user
+            raise credentials_exception
+        except (JoseError, TypeError, ValueError):
+            raise credentials_exception
+
+    raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Not authenticated",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    jwt = JsonWebToken([settings.OAUTH2_JWT_ALG])
-    try:
-        #TODO check if adding claims_options is good
-        # Check if validate should be called
-        claims = jwt.decode(token, settings.OAUTH2_JWT_KEY)
-        sub = claims.get("sub")
-        if not sub:
-            raise credentials_exception
-    except JoseError:
-        raise credentials_exception
-
-    try:
-        user_id = int(sub)
-    except (TypeError, ValueError):
-        raise credentials_exception
-
-    user = session.exec(select(User).where(User.id == user_id)).first()
-
-    if user is None:
-        raise credentials_exception
-    return user
 
 
 async def get_current_user_optional(
         request: Request,
-        session: Session = Depends(get_db)
+        session: Session = Depends(get_db),
+        token: Annotated[Optional[str], Depends(oauth2_scheme)] = None,
 ) -> Optional[User]:
     """
-    Get current user from Bearer token or cookie, but don't raise exception if missing.
+    Get current user from Bearer token or session, but don't raise exception if missing.
     """
-    authorization: str = request.headers.get("Authorization")
-    scheme, param = get_authorization_scheme_param(authorization)
-    token = None
-    if scheme.lower() == "bearer":
-        token = param
-    else:
+    # 1. Try session
+    user = await get_session_user(request, session)
+    if user:
+        return user
+
+    # 2. Try token
+    if not token:
         token = request.cookies.get("access_token")
 
     if not token:

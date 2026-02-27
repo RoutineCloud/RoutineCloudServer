@@ -20,11 +20,7 @@ async def get_current_user_me(
     """
     Get current user information
     """
-    return UserRead(username=current_user.username,
-                    email=current_user.email,
-                    is_active=current_user.is_active,
-                    is_superuser=current_user.is_superuser
-                    )
+    return current_user
 
 @router.post("/change-password", operation_id="users_change_password")
 async def change_password(
