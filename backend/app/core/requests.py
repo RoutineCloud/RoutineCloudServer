@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Mapping
 
 from authlib.oauth2.rfc6749 import OAuth2Request
 from authlib.oauth2.rfc6749.requests import BasicOAuth2Payload
@@ -18,7 +18,7 @@ class FastAPIOAuth2Request(OAuth2Request):
         self,
         method: str,
         uri: str,
-        headers: Dict[str, str],
+        headers: Mapping[str, str],
         query_args: Dict[str, str],
         form_data: Dict[str, str],
     ) -> None:
@@ -86,7 +86,7 @@ def form_to_oauth2_request(
     return FastAPIOAuth2Request(
         method=request.method,
         uri=str(request.url),
-        headers=dict(request.headers),
+        headers=request.headers,
         query_args=query_args,
         form_data=form_data,
     )
@@ -105,7 +105,7 @@ class FastAPIJsonRequest(JsonRequest):
         self,
         method: str,
         uri: str,
-        headers: Dict[str, str],
+        headers: Mapping[str, str],
         json_data: Dict[str, Any],
     ) -> None:
         super().__init__(method, uri, headers)
@@ -116,6 +116,6 @@ def json_to_json_request(request: Request, data: Dict[str, Any]) -> JsonRequest:
     return FastAPIJsonRequest(
         method=request.method,
         uri=str(request.url),
-        headers=dict(request.headers),
+        headers=request.headers,
         json_data=data,
     )

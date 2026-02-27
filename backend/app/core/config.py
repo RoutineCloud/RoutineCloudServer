@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     
     # Frontend URL for redirections
     FRONTEND_URL: str = "http://localhost:3000"
+    BACKEND_URL: str = "http://localhost:8000"
     LOGIN_PATH: str = "/login"
     AUTHORIZE_PATH: str = "/oauth/authorize"
 

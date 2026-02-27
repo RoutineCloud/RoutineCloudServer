@@ -29,8 +29,8 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
         session = request.db
         item = OAuth2AuthorizationCode(
             client_id=request.client.client_id,
-            redirect_uri=request.redirect_uri,
-            scope=request.scope,
+            redirect_uri=request.payload.redirect_uri,
+            scope=request.payload.scope,
             user_id=request.user.id,
             code=code,
         )

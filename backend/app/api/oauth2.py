@@ -169,8 +169,8 @@ async def oauth_consent(
 
     # 2. Redirect back to the authorize endpoint to complete the authorization flow
     # This keeps the final authorization logic centralized in the authorize endpoint.
-    # We use url_for to get the absolute URL to the authorize endpoint.
-    authorize_url = str(request.url_for("authorize"))
+    # We use the BACKEND_URL from settings to build the absolute URL to the authorize endpoint.
+    authorize_url = f"{settings.BACKEND_URL}{router.prefix}/authorize"
     if request.query_params:
         authorize_url += f"?{request.query_params}"
     return AuthJsonResponse(redirect_to=authorize_url)
