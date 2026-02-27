@@ -130,11 +130,6 @@ def _upsert_client(session: Session, *, client_id: str, client_secret: str | Non
     existing = session.exec(select(OAuth2Client).where(OAuth2Client.client_id == client_id)).first()
     
     if existing:
-        logger.info(f"Updating existing OAuth2 client: {client_id}")
-        existing.client_secret = client_secret
-        existing.set_client_metadata(metadata)
-        session.add(existing)
-        session.commit()
         return
 
     item = OAuth2Client(client_id=client_id, client_secret=client_secret)
