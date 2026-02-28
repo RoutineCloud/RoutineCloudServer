@@ -3,11 +3,9 @@ import {onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {useUserStore} from '@/stores/user'
 import UsersPanel from '@/components/admin/UsersPanel.vue'
-import OAuthClientsPanel from '@/components/admin/OAuthClientsPanel.vue'
 
 const tabs = [
   { key: 'users', title: 'Users', icon: 'mdi-account-multiple' },
-  { key: 'oauth', title: 'OAuth Clients', icon: 'mdi-shield-key' },
 ]
 
 const active = ref('users')
@@ -47,7 +45,6 @@ onMounted(() => {
 
       <v-col cols="12" md="9">
         <UsersPanel v-if="active === 'users'" />
-        <OAuthClientsPanel v-if="active === 'oauth'" />
       </v-col>
     </v-row>
   </div>

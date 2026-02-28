@@ -5,6 +5,10 @@ import {useUserStore} from '@/stores/user.ts'
 const userStore = useUserStore()
 const menu = ref(false)
 
+const login = () => {
+  userStore.login()
+}
+
 const logout = () => {
   userStore.logout()
 }
@@ -19,7 +23,7 @@ const logout = () => {
       <v-btn v-if="userStore.isAuthenticated" to="/routines" text>Routines</v-btn>
       <v-btn v-if="userStore.isAuthenticated" to="/tasks" text>Tasks</v-btn>
 
-      <v-btn v-if="!userStore.isAuthenticated" to="/login" text>Login</v-btn>
+      <v-btn v-if="!userStore.isAuthenticated" @click="login" text>Login</v-btn>
       <div v-if="userStore.isAuthenticated">
         <v-menu v-model="menu" :close-on-content-click="false">
           <template v-slot:activator="{ props }">
@@ -29,7 +33,7 @@ const logout = () => {
           </template>
           <v-card min-width="200">
             <v-list>
-              <v-list-item>
+              <v-list-item v-if="userStore.user">
                 <v-list-item-title>{{ userStore.user.username }}</v-list-item-title>
               </v-list-item>
               <v-list-item to="/konto">Konto</v-list-item>

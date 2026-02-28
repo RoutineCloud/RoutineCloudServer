@@ -3,10 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqladmin import Admin, ModelView
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import settings
-from app.core.oauth2 import config_oauth
 from app.db import base as models_base
 from app.db.session import engine
 
@@ -26,19 +24,16 @@ async def http_exception_handler(request, exc):
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL],
+    allow_origins=[str(origin).rstrip("/") for origin in settings.ALLOW_ORIGINS] if settings.ALLOW_ORIGINS else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
 # Import API routers
 from app.api.device import router as device_router
 from app.api.user import router as user_router
-from app.api.auth import router as auth_router
-from app.api.oauth2 import router as oauth_router
 from app.api.task import router as task_router
 from app.api.routine import router as routine_router
 from app.api.admin import router as admin_router
@@ -51,13 +46,10 @@ admin = Admin(app, engine)
 class UserAdmin(ModelView, model=models_base.User):
     column_list = [models_base.User.id, models_base.User.username]
 
-config_oauth(app)
 
 admin.add_view(UserAdmin)
 app.include_router(device_router)
 app.include_router(user_router)
-app.include_router(auth_router)
-app.include_router(oauth_router)
 app.include_router(task_router)
 app.include_router(routine_router)
 app.include_router(admin_router)
