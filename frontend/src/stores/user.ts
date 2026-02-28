@@ -1,6 +1,8 @@
 import {defineStore} from 'pinia';
-import {computed, ref} from 'vue';
-import {Auth, Users} from "@/api";
+import {computed, ref, watch} from 'vue';
+import {Users} from "@/api";
+import {userManager} from '@/auth';
+import type {User as OidcUser} from 'oidc-client-ts';
 
 type User = {
     username: string;
@@ -11,36 +13,52 @@ type User = {
 
 export const useUserStore = defineStore('user', () => {
   // State
+  const oidcUser = ref<OidcUser | null>(null);
   const user = ref<User | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
+
+  // Initialize
+  userManager.getUser().then(u => {
+    oidcUser.value = u;
+  });
+
+  // Events
+  userManager.events.addUserLoaded((u) => {
+    oidcUser.value = u;
+  });
+  userManager.events.addUserUnloaded(() => {
+    oidcUser.value = null;
+  });
 
   if (localStorage.getItem("user")) {
     user.value = JSON.parse(localStorage.getItem("user") as string)
   }
 
+  // Watch for OIDC user changes
+  watch(
+    () => oidcUser.value,
+    (u) => {
+      if (u && !user.value) {
+        fetchUserProfile();
+      } else if (!u) {
+        user.value = null;
+        localStorage.removeItem("user");
+      }
+    },
+    { immediate: true }
+  );
+
   // Getters
-  const isAuthenticated = computed(() => !!user.value);
+  const isAuthenticated = computed(() => !!user.value || !!oidcUser.value);
   const userProfile = computed(() => user.value);
+  const accessToken = computed(() => oidcUser.value?.access_token);
 
   // Actions
-  async function authLogin(username: string, password: string) {
+  async function fetchUserProfile() {
     loading.value = true;
     error.value = null;
     try {
-      const {error: authError} = await Auth.authSessionLogin({
-        body: {
-          username,
-          password
-        }
-      });
-
-      if (authError) {
-        console.error('Auth login failed:', authError);
-        error.value = 'Invalid username or password';
-        return false;
-      }
-
       const {data: userData, error: userError} = await Users.usersMe();
       if (userError) {
         console.error('Failed to fetch user profile:', userError);
@@ -50,26 +68,29 @@ export const useUserStore = defineStore('user', () => {
 
       user.value = userData as any;
       localStorage.setItem("user", JSON.stringify(userData));
-
       return true;
     } catch (err) {
-      console.error('Auth login failed:', err);
-      error.value = 'Invalid username or password';
+      console.error('Failed to fetch user profile:', err);
+      error.value = 'Failed to fetch user profile';
       return false;
     } finally {
       loading.value = false;
     }
   }
 
+  function login() {
+    userManager.signinRedirect();
+  }
+
   async function logout() {
     try {
-      await Auth.authSessionLogout();
+      await userManager.signoutRedirect();
     } catch (err) {
       console.error('Logout failed:', err);
-    } finally {
+      // Fallback cleanup
+      oidcUser.value = null;
       user.value = null;
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem("user")
+      localStorage.removeItem("user");
     }
   }
 
@@ -82,9 +103,11 @@ export const useUserStore = defineStore('user', () => {
     // Getters
     isAuthenticated,
     userProfile,
+    accessToken,
 
     // Actions
-    authLogin,
+    fetchUserProfile,
+    login,
     logout,
   };
 });

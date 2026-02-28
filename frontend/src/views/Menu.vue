@@ -29,7 +29,7 @@ const logout = () => {
           </template>
           <v-card min-width="200">
             <v-list>
-              <v-list-item>
+              <v-list-item v-if="userStore.user">
                 <v-list-item-title>{{ userStore.user.username }}</v-list-item-title>
               </v-list-item>
               <v-list-item to="/konto">Konto</v-list-item>

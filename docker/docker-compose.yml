@@ -12,7 +12,11 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=False
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-["localhost","127.0.0.1"]}
-      - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost","http://127.0.0.1"]}
+      - ALLOW_ORIGINS=${ALLOW_ORIGINS:-["http://localhost","http://127.0.0.1"]}
+      - OIDC_ISSUER=${OIDC_ISSUER}
+      - OIDC_CLIENT_ID=${OIDC_CLIENT_ID}
+      - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
+      - OIDC_JWKS_URL=${OIDC_JWKS_URL}
     depends_on:
       - db
     volumes:

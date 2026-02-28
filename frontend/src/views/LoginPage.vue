@@ -19,50 +19,23 @@
                     Sign In
                   </v-card-title>
                   <v-card-text>
-                    <v-form ref="form" v-model="valid" @submit.prevent="login">
-                      <v-text-field
-                        v-model="email"
-                        label="Email"
-                        prepend-inner-icon="mdi-email"
-                        type="email"
-                        required
-                      ></v-text-field>
-                      <v-text-field
-                        v-model="password"
-                        label="Password"
-                        prepend-inner-icon="mdi-lock"
-                        :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                        :type="showPassword ? 'text' : 'password'"
-                        @click:append-inner="showPassword = !showPassword"
-                        required
-                      ></v-text-field>
-                      <v-btn
+                    <v-btn
                         block
                         color="primary"
                         size="large"
-                        type="submit"
                         :loading="loading"
-                        :disabled="!valid"
+                        @click="login"
                       >
-                        Sign In
-                      </v-btn>
-                    </v-form>
+                        Sign In with OIDC
+                    </v-btn>
                     <v-alert
                         closable
                         v-model="error"
                         v-if="error"
-                        type="error">{{ error }}
+                        type="error"
+                        class="mt-4">{{ error }}
                     </v-alert>
                   </v-card-text>
-                  <v-divider class="my-3"></v-divider>
-                  <v-card-actions class="justify-center">
-                    <div class="text-center">
-                      <div class="mb-3">Don't have an account?</div>
-                      <v-btn variant="outlined" color="primary">
-                        Create Account
-                      </v-btn>
-                    </div>
-                  </v-card-actions>
                 </v-card>
               </v-col>
             </v-row>
@@ -75,43 +48,15 @@
 
 <script setup lang="ts">
 import {ref} from 'vue';
-import {useRoute, useRouter} from 'vue-router';
 import {useUserStore} from '@/stores';
 
-
-const router = useRouter();
-const route = useRoute();
-const valid = ref(false);
 const loading = ref(false);
-const email = ref('');
-const password = ref('');
-const showPassword = ref(false);
 const error = ref('');
 const userStore = useUserStore()
 
-const login = async () => {
-  if (!valid.value) return;
-  
+const login = () => {
   loading.value = true;
-
-  if(await userStore.authLogin(email.value, password.value)) {
-    const redirectPath = route.query.redirect as string;
-    
-    if (redirectPath) {
-      // If we have a redirect path (e.g. from an external OAuth request or navigation guard)
-      if(redirectPath.startsWith('http')) {
-        window.location.assign(redirectPath);
-      } else {
-        router.push(redirectPath);
-      }
-    } else {
-      // Direct login to the application - no longer need OAuth2 Code flow for ourselves
-      router.push('/');
-    }
-  } else {
-    error.value = 'Invalid credentials';
-  }
-  loading.value = false;
+  userStore.login();
 };
 </script>
 

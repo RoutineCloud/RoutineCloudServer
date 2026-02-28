@@ -18,12 +18,12 @@ class User(BaseModel, table=True):
     """User model for authentication and user management (SQLModel)."""
     __tablename__ = "users"
 
-    email: str = Field(index=True)
-    username: str = Field(index=True)
-    hashed_password: str
+    email: Optional[str] = Field(default=None, index=True)
+    username: Optional[str] = Field(default=None, index=True)
     is_active: bool = True
     is_superuser: bool = False
     last_login: Optional[datetime] = None
+    oidc_sub: str = Field(index=True, unique=True)
 
     # Relationships
     devices: List["Device"] = Relationship(back_populates="owner")

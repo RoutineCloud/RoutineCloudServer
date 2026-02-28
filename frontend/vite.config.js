@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite';
+import {defineConfig} from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vuetify from 'vite-plugin-vuetify';
-import { fileURLToPath, URL } from 'node:url';
+import {fileURLToPath, URL} from 'node:url';
 
 export default defineConfig({
   plugins: [
@@ -17,6 +17,7 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    allowedHosts: ['hinderingly-monocotyledonous-otilia.ngrok-free.dev'],
     proxy: {
       '/api': {
         target: 'http://localhost:8000',

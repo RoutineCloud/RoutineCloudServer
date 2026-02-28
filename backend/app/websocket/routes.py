@@ -3,12 +3,11 @@ from __future__ import annotations
 import asyncio
 from typing import List, Optional, Dict, Any
 
-import jwt
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from sqlmodel import Session, select
 from sqlmodel import update
 
-from app.core.config import settings
+from app.core.security import validate_oidc_token
 from app.db.session import get_db
 from app.models.device import DeviceStatus, Device
 from app.models.routine import Routine
@@ -24,26 +23,35 @@ async def _get_user_and_device_id_from_token(token: Optional[str], db: Session) 
     """
     Checks if the user and device from the token are valid and if the user owns the device
     If yes returns the user and device id
-    :param token:
-    :param db:
-    :return:
     """
     if not token:
         return None, None
     try:
-        #TODO make the decode with authlib
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-    except jwt.InvalidTokenError:
+        payload = validate_oidc_token(token)
+    except Exception:
         return None, None
-    username = payload.get("sub")
-    if not username:
+    
+    sub = payload.get("sub")
+    if not sub:
         return None, None
-    user = db.exec(select(User).where(User.username == username)).first()
+    
+    user = db.exec(select(User).where(User.oidc_sub == sub)).first()
+    if not user:
+        return None, None
+        
     client_id = payload.get("client_id")
-    #Check if the user owns the device
+    if not client_id:
+        # Fallback or alternate claim for device ID if needed
+        # For now keep it as it was
+        return user, None
+
+    # Check if the user owns the device
     dev = db.exec(select(Device).where(Device.device_id == client_id)).first()
     if not dev or dev.owner_id != user.id:
+        # If client_id was provided but doesn't match, we still return user but no device_id
+        # or we could return None, None. The old code returned None, None.
         return None, None
+        
     return user, client_id
 
 
