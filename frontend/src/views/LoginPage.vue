@@ -47,12 +47,16 @@
 </template>
 
 <script setup lang="ts">
-import {ref} from 'vue';
+import {onMounted, ref} from 'vue';
 import {useUserStore} from '@/stores';
 
 const loading = ref(false);
 const error = ref('');
 const userStore = useUserStore()
+
+onMounted(() => {
+  login();
+});
 
 const login = () => {
   loading.value = true;

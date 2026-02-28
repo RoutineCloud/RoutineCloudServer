@@ -2,6 +2,10 @@
 import {useUserStore} from '@/stores/index.js'
 
 const userStore = useUserStore()
+
+const login = () => {
+  userStore.login()
+}
 </script>
 
 <template>
@@ -19,7 +23,7 @@ const userStore = useUserStore()
             color="primary"
             size="large"
             class="px-6"
-            to="/login"
+            @click="login"
           >Get Started</v-btn>
           <v-btn
             v-else
