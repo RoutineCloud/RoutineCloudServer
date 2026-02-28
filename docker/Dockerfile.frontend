@@ -23,6 +23,10 @@ COPY --from=build-stage /app/dist /usr/share/nginx/html
 # Copy nginx configuration
 COPY docker/nginx.conf.template /etc/nginx/templates/default.conf.template
 
+# Copy the config generation script
+COPY docker/generate_config.sh /docker-entrypoint.d/40-generate-config.sh
+RUN chmod +x /docker-entrypoint.d/40-generate-config.sh
+
 # Expose port
 EXPOSE 80
 
