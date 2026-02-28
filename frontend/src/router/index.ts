@@ -8,6 +8,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/Home.vue')
     },
     {
+        path: '/callback',
+        name: 'Callback',
+        component: () => import('../views/Callback.vue'),
+    },
+    {
         path: '/about',
         name: 'About',
         component: () => import('../views/About.vue')
@@ -19,14 +24,6 @@ const routes: RouteRecordRaw[] = [
         meta: {
           requiresAuth: false,
           title: 'Login - Routine Cloud'
-        }
-    },
-    {
-        path: '/oauth/authorize',
-        name: 'OAuthAuthorize',
-        component: () => import('../views/OAuthAuthorize.vue'),
-        meta: {
-          title: 'Link Alexa - Routine Cloud'
         }
     },
     {
@@ -46,12 +43,6 @@ const routes: RouteRecordRaw[] = [
         name: 'Tasks',
         component: () => import('../views/TaskLibraryPage.vue'),
         meta: { title: 'Tasks - Routine Cloud' }
-    },
-    {
-        path: '/device',
-        name: 'DeviceVerify',
-        component: () => import('../views/DeviceVerifyPage.vue'),
-        meta: { title: 'Link Device - Routine Cloud' }
     },
     {
         path: "/konto",

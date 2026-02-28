@@ -44,10 +44,6 @@ END
 echo "Running migrations..."
 uv run alembic upgrade head
 
-# Create initial data (admin user, etc.)
-echo "Initializing database..."
-uv run python -m scripts.init_db
-
 echo "Startup script finished successfully."
 
 # Run the passed command

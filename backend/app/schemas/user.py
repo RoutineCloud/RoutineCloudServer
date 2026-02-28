@@ -10,24 +10,12 @@ class UserBase(SQLModel):
     username: Optional[str] = None
     is_active: Optional[bool] = True
     is_superuser: Optional[bool] = False
-
-
-class UserCreate(UserBase):
-    """Schema for creating a new user."""
-    email: EmailStr
-    username: str
-    password: str
+    oidc_sub: str
 
 
 class UserUpdate(UserBase):
     """Schema for updating a user."""
-    password: Optional[str] = None
-
-
-class UserPasswordUpdate(SQLModel):
-    """Schema for updating a user's password."""
-    current_password: str
-    new_password: str
+    pass
 
 
 class UserRead(UserBase):
