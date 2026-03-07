@@ -20,7 +20,7 @@ class Routine(BaseModel, table=True):
     user_id: int = Field(foreign_key="users.id")
 
     # Relationships
-    owner: "User" = Relationship(back_populates="routines")
+    owner: "User" = Relationship(back_populates="routines", sa_relationship_kwargs={"foreign_keys": "Routine.user_id"})
 
     routine_tasks: List[RoutineTask] = Relationship(back_populates="routine", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
     tasks: List["Task"] = Relationship(back_populates="routines", link_model=RoutineTask)

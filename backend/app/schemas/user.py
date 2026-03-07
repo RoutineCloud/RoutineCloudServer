@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from pydantic import EmailStr
@@ -11,6 +12,8 @@ class UserBase(SQLModel):
     is_active: Optional[bool] = True
     is_superuser: Optional[bool] = False
     oidc_sub: str
+    active_routine_id: Optional[int] = None
+    active_routine_started_at: Optional[datetime] = None
 
 
 class UserUpdate(UserBase):

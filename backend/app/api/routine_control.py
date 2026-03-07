@@ -68,3 +68,18 @@ async def stop_current_routine(
     db.commit()
 
     return {"status": "stopped", "routine_id": active_routine_id}
+
+
+@router.post("/skip", status_code=status.HTTP_202_ACCEPTED)
+async def skip_current_task(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    active_routine_id = current_user.active_routine_id
+    if active_routine_id is None:
+        raise HTTPException(status_code=404, detail="No active routine")
+
+    # Trigger the task skip via WebSocket
+    await ws_manager.push_routine_event(current_user.id, active_routine_id, "skip_task")
+
+    return {"status": "skipped", "routine_id": active_routine_id}
