@@ -122,6 +122,12 @@ async def delete_routine(
     ).first()
     if not r:
         raise HTTPException(status_code=404, detail="Routine not found")
+
+    if current_user.active_routine_id == r.id:
+        current_user.active_routine_id = None
+        current_user.active_routine_started_at = None
+        db.add(current_user)
+
     db.delete(r)
     db.commit()
     return None
@@ -254,3 +260,6 @@ async def end_routine(
         raise HTTPException(status_code=404, detail="Routine not found")
     await ws_manager.push_routine_event(current_user.id, routine_id, "stop_routine")
     return {"status": "ended"}
+
+
+

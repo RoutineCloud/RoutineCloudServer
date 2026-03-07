@@ -1,12 +1,11 @@
+from app.core.config import settings
+from app.db import base as models_base
+from app.db.session import engine
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqladmin import Admin, ModelView
 from starlette.exceptions import HTTPException as StarletteHTTPException
-
-from app.core.config import settings
-from app.db import base as models_base
-from app.db.session import engine
 
 # Create FastAPI app
 app = FastAPI(title="Routine Cloud API")
@@ -36,6 +35,7 @@ from app.api.device import router as device_router
 from app.api.user import router as user_router
 from app.api.task import router as task_router
 from app.api.routine import router as routine_router
+from app.api.routine_control import router as routine_control_router
 from app.api.admin import router as admin_router
 from app.websocket.routes import router as ws_router
 
@@ -52,6 +52,7 @@ app.include_router(device_router)
 app.include_router(user_router)
 app.include_router(task_router)
 app.include_router(routine_router)
+app.include_router(routine_control_router)
 app.include_router(admin_router)
 app.include_router(ws_router)
 

@@ -24,6 +24,8 @@ class User(BaseModel, table=True):
     is_superuser: bool = False
     last_login: Optional[datetime] = None
     oidc_sub: str = Field(index=True, unique=True)
+    active_routine_id: Optional[int] = Field(default=None, foreign_key="routines.id")
+    active_routine_started_at: Optional[datetime] = None
 
     # Relationships
     devices: List["Device"] = Relationship(back_populates="owner")
