@@ -1,13 +1,13 @@
 # Routine Cloud Backend
 
-This is the backend for the Routine Cloud application, built with FastAPI and PostgreSQL.
+This is the backend for the Routine Cloud application, built with FastAPI and SQLite (default) or PostgreSQL.
 
 ## Setup
 
 ### Prerequisites
 
 - Python 3.11+
-- PostgreSQL
+- SQLite (default) or PostgreSQL
 - uv (for environment and dependency management)
 
 ### Environment Setup
@@ -20,12 +20,15 @@ This is the backend for the Routine Cloud application, built with FastAPI and Po
 
 ### Database Setup
 
+The application uses SQLite by default (stored in `backend/routine_cloud.db`).
+
+If you prefer PostgreSQL:
 1. Create a PostgreSQL database:
    ```bash
    createdb routine_cloud
    ```
 
-2. Update `.env` with your PostgreSQL credentials, or set `DATABASE_URL` directly.
+2. Update `.env` (or `.env.local`) with your PostgreSQL credentials, or set `DATABASE_URL` directly.
 
 ### Running Migrations
 

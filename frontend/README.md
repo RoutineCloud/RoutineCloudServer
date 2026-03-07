@@ -59,7 +59,7 @@ This is the frontend for the Routine Cloud application, built with Vue 3, Vite, 
 
 ## Features
 
-- **Authentication** - Login and registration
+- **Authentication** - OIDC-based authentication (Zitadel by default)
 - **Alexa Integration** - OAuth authorization for Alexa account linking
 - **Responsive Design** - Works on desktop and mobile devices
 - **State Management** - Using Pinia for a better developer experience
