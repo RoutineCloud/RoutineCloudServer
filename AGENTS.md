@@ -9,6 +9,14 @@
 - `cd backend && uv run pytest [-k name]` executes backend tests.
 - `cd frontend && npm install` then `npm run dev` launches Vite on `:3000`; `npm run build` emits optimized assets and `npm run lint` enforces formatting.
 
+## API Client Sync Rule
+When Codex changes any REST API contract (routes, request/response schemas, OpenAPI output, or related backend model/serializer behavior), Codex must run the project skill at `.codex/skills/generate-openapi-ts-api/` to regenerate the frontend client before finishing.
+
+Use:
+- `bash .codex/skills/generate-openapi-ts-api/scripts/generate_api.sh`
+
+Treat stale generated files in `frontend/src/api/` as a blocking issue for API-related changes.
+
 ## Coding Style & Naming Conventions
 Follow PEP 8 on the backend: 4-space indents, explicit type hints, `snake_case` modules, and `PascalCase` SQLAlchemy models.
 Group new Flask routes by domain (`app/api/device.py`, `app/api/task.py`) and keep shared helpers inside `app/utils/`.

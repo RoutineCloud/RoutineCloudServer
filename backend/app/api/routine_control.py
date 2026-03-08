@@ -1,12 +1,13 @@
 import difflib
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models.routine import Routine
+from app.models.routine_runtime_state import RoutineRuntimeState
 from app.models.user import User
 from app.schemas.routine_control import RoutineStartPayload
-from app.websocket.manager import ws_manager
+from app.services.routine_command_service import CommandValidationError, routine_command_service
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
@@ -22,7 +23,6 @@ async def start_routine_by_name(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # Fetch all routines for this user
     routines = db.exec(
         select(Routine).where(Routine.user_id == current_user.id)
     ).all()
@@ -30,7 +30,6 @@ async def start_routine_by_name(
     if not routines:
         raise HTTPException(status_code=404, detail="No routines found for this user")
 
-    # Find the best match for the routine name
     routine_names = [r.name for r in routines]
     matches = difflib.get_close_matches(payload.name, routine_names, n=1, cutoff=0.3)
 
@@ -40,13 +39,20 @@ async def start_routine_by_name(
     best_match_name = matches[0]
     routine = next(r for r in routines if r.name == best_match_name)
 
-    current_user.active_routine_id = routine.id
-    current_user.active_routine_started_at = datetime.utcnow()
-    db.add(current_user)
-    db.commit()
-
-    # Trigger the routine start via WebSocket
-    await ws_manager.push_routine_event(current_user.id, routine.id, "start_routine")
+    try:
+        await routine_command_service.execute(
+            db=db,
+            user_id=current_user.id,
+            command={
+                "command_id": f"server-{current_user.id}-{routine.id}-{int(datetime.now(timezone.utc).timestamp())}",
+                "type": "routine.start",
+                "routine_id": routine.id,
+                "requested_at": datetime.now(timezone.utc).isoformat(),
+            },
+            actor={"type": "server", "id": "api:routine-control/start"},
+        )
+    except CommandValidationError as exc:
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
 
     return {"status": "started", "routine_name": routine.name, "routine_id": routine.id}
 
@@ -56,30 +62,25 @@ async def stop_current_routine(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    active_routine_id = current_user.active_routine_id
+    runtime = db.exec(
+        select(RoutineRuntimeState).where(RoutineRuntimeState.user_id == current_user.id)
+    ).first()
+    active_routine_id = runtime.active_routine_id if runtime else None
     if active_routine_id is None:
         raise HTTPException(status_code=404, detail="No active routine")
 
-    await ws_manager.push_routine_event(current_user.id, active_routine_id, "stop_routine")
-
-    current_user.active_routine_id = None
-    current_user.active_routine_started_at = None
-    db.add(current_user)
-    db.commit()
+    try:
+        await routine_command_service.execute(
+            db=db,
+            user_id=current_user.id,
+            command={
+                "command_id": f"server-{current_user.id}-{active_routine_id}-{int(datetime.now(timezone.utc).timestamp())}",
+                "type": "routine.end",
+                "requested_at": datetime.now(timezone.utc).isoformat(),
+            },
+            actor={"type": "server", "id": "api:routine-control/stop"},
+        )
+    except CommandValidationError as exc:
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
 
     return {"status": "stopped", "routine_id": active_routine_id}
-
-
-@router.post("/skip", status_code=status.HTTP_202_ACCEPTED)
-async def skip_current_task(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    active_routine_id = current_user.active_routine_id
-    if active_routine_id is None:
-        raise HTTPException(status_code=404, detail="No active routine")
-
-    # Trigger the task skip via WebSocket
-    await ws_manager.push_routine_event(current_user.id, active_routine_id, "skip_task")
-
-    return {"status": "skipped", "routine_id": active_routine_id}

@@ -23,19 +23,11 @@ class User(BaseModel, table=True):
     is_superuser: bool = False
     last_login: Optional[datetime] = None
     oidc_sub: str = Field(index=True, unique=True)
-    active_routine_id: Optional[int] = Field(default=None, foreign_key="routines.id")
-    active_routine_started_at: Optional[datetime] = None
 
     # Relationships
     devices: List["Device"] = Relationship(back_populates="owner")
-    routines: List["Routine"] = Relationship(
-        back_populates="owner",
-        sa_relationship_kwargs={"foreign_keys": "Routine.user_id"}
-    )
+    routines: List["Routine"] = Relationship(back_populates="owner")
     tasks: List["Task"] = Relationship(back_populates="owner")
-    active_routine: Optional["Routine"] = Relationship(
-        sa_relationship_kwargs={"foreign_keys": "User.active_routine_id"}
-    )
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"

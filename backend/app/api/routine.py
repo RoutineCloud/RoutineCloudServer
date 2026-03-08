@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -6,10 +7,15 @@ from sqlmodel import Session, select
 from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models.routine import Routine
+from app.models.routine_runtime_state import RoutineRuntimeState, RuntimeStatus
 from app.models.routine_task import RoutineTask
 from app.models.task import Task
 from app.models.user import User
-from app.schemas.routine import RoutineCreate, RoutineRead, TaskInRoutineRead, RoutineTaskAdd, RoutineUpdate
+from app.schemas.routine import RoutineCreate, RoutineRead, RoutineTaskAdd, RoutineUpdate, TaskInRoutineRead
+from app.schemas.routine_control import ActiveRoutineStatusRead
+from app.schemas.socketio import CommandType
+from app.services.routine_command_service import CommandValidationError, routine_command_service
+from app.socketio.state import build_runtime_payload
 
 router = APIRouter(
     prefix="/api/routines",
@@ -44,6 +50,56 @@ def _load_routine_tasks(db: Session, routine_id: int) -> List[TaskInRoutineRead]
     return result
 
 
+def _runtime_status(db: Session, user_id: int) -> ActiveRoutineStatusRead:
+    runtime = db.exec(select(RoutineRuntimeState).where(RoutineRuntimeState.user_id == user_id)).first()
+    if not runtime:
+        return ActiveRoutineStatusRead(status="idle")
+
+    routine_name: Optional[str] = None
+    if runtime.active_routine_id is not None:
+        routine = db.exec(
+            select(Routine).where(Routine.id == runtime.active_routine_id, Routine.user_id == user_id)
+        ).first()
+        if routine:
+            routine_name = routine.name
+
+    runtime_payload = build_runtime_payload(runtime)
+    return ActiveRoutineStatusRead(
+        active_routine_id=runtime_payload.active_routine_id,
+        routine_name=routine_name,
+        status=runtime_payload.status.value,
+        current_task_position=runtime_payload.current_task_position,
+        started_at=runtime_payload.task_started_at,
+    )
+
+
+def _server_command_id(user_id: int, suffix: str) -> str:
+    return f"server-{user_id}-{suffix}-{int(datetime.now(timezone.utc).timestamp())}"
+
+
+async def _execute_runtime_command(
+    db: Session,
+    user_id: int,
+    command_type: CommandType,
+    actor_id: str,
+    routine_id: Optional[int] = None,
+) -> None:
+    payload = {
+        "command_id": _server_command_id(user_id, command_type.value),
+        "type": command_type.value,
+        "requested_at": datetime.now(timezone.utc).isoformat(),
+    }
+    if routine_id is not None:
+        payload["routine_id"] = routine_id
+
+    await routine_command_service.execute(
+        db=db,
+        user_id=user_id,
+        command=payload,
+        actor={"type": "server", "id": actor_id},
+    )
+
+
 @router.post("/", response_model=RoutineRead, status_code=status.HTTP_201_CREATED, operation_id="routines_create")
 async def create_routine(
     payload: RoutineCreate,
@@ -66,8 +122,66 @@ async def list_routines(
     routines = db.exec(select(Routine).where(Routine.user_id == current_user.id)).all()
     if include_tasks:
         return [_routine_to_read(r, _load_routine_tasks(db, r.id)) for r in routines]
-    else:
-        return [_routine_to_read(r, None) for r in routines]
+    return [_routine_to_read(r, None) for r in routines]
+
+
+@router.get("/active/status", response_model=ActiveRoutineStatusRead, operation_id="routines_active_status")
+async def active_status(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return _runtime_status(db, current_user.id)
+
+
+@router.post("/active/skip", status_code=status.HTTP_202_ACCEPTED, operation_id="routines_active_skip")
+async def skip_active_task(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        await _execute_runtime_command(
+            db=db,
+            user_id=current_user.id,
+            command_type=CommandType.TASK_SKIP,
+            actor_id="api:routines/active/skip",
+        )
+    except CommandValidationError as exc:
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
+    return {"status": "skipped"}
+
+
+@router.post("/active/pause", status_code=status.HTTP_202_ACCEPTED, operation_id="routines_active_pause")
+async def pause_active_routine(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        await _execute_runtime_command(
+            db=db,
+            user_id=current_user.id,
+            command_type=CommandType.ROUTINE_PAUSE,
+            actor_id="api:routines/active/pause",
+        )
+    except CommandValidationError as exc:
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
+    return {"status": "paused"}
+
+
+@router.post("/active/resume", status_code=status.HTTP_202_ACCEPTED, operation_id="routines_active_resume")
+async def resume_active_routine(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        await _execute_runtime_command(
+            db=db,
+            user_id=current_user.id,
+            command_type=CommandType.ROUTINE_RESUME,
+            actor_id="api:routines/active/resume",
+        )
+    except CommandValidationError as exc:
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
+    return {"status": "running"}
 
 
 @router.get("/{routine_id}", response_model=RoutineRead, operation_id="routines_get")
@@ -123,10 +237,13 @@ async def delete_routine(
     if not r:
         raise HTTPException(status_code=404, detail="Routine not found")
 
-    if current_user.active_routine_id == r.id:
-        current_user.active_routine_id = None
-        current_user.active_routine_started_at = None
-        db.add(current_user)
+    runtime = db.exec(select(RoutineRuntimeState).where(RoutineRuntimeState.user_id == current_user.id)).first()
+    if runtime and runtime.active_routine_id == r.id:
+        runtime.active_routine_id = None
+        runtime.status = RuntimeStatus.IDLE
+        runtime.current_task_position = None
+        runtime.task_started_at = None
+        db.add(runtime)
 
     db.delete(r)
     db.commit()
@@ -163,12 +280,9 @@ async def add_task_to_routine(
     t: Optional[Task] = db.get(Task, payload.task_id)
     if not t:
         raise HTTPException(status_code=404, detail="Task not found")
-    # Ownership check: only allow adding a task owned by the current user
     if t.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="You do not own this task")
 
-
-    # Determine position
     if payload.position is None:
         last = db.exec(
             select(RoutineTask)
@@ -178,7 +292,6 @@ async def add_task_to_routine(
         position = (last.position + 1) if last else 1
     else:
         position = max(1, payload.position)
-        # Shift tasks at or after this position
         to_shift = db.exec(
             select(RoutineTask).where(
                 RoutineTask.routine_id == r.id,
@@ -219,7 +332,6 @@ async def remove_task_from_routine(
     db.delete(link)
     db.commit()
 
-    # Shift positions down for tasks after the removed one
     db.query(RoutineTask).filter(
         RoutineTask.routine_id == r.id, RoutineTask.position > removed_pos
     ).update({RoutineTask.position: RoutineTask.position - 1})
@@ -227,9 +339,6 @@ async def remove_task_from_routine(
 
     return _load_routine_tasks(db, r.id)
 
-
-# --- WebSocket-triggered routine control endpoints ---
-from app.websocket.manager import ws_manager  # type: ignore
 
 @router.post("/{routine_id}/start", status_code=status.HTTP_202_ACCEPTED, operation_id="routines_start")
 async def start_routine(
@@ -242,24 +351,20 @@ async def start_routine(
     ).first()
     if not r:
         raise HTTPException(status_code=404, detail="Routine not found")
-    # Push event to all of this user's connections
-    await ws_manager.push_routine_event(current_user.id, routine_id, "start_routine")
+
+    try:
+        await _execute_runtime_command(
+            db=db,
+            user_id=current_user.id,
+            command_type=CommandType.ROUTINE_START,
+            actor_id="api:routines/start",
+            routine_id=routine_id,
+        )
+    except CommandValidationError as exc:
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
+
     return {"status": "started"}
 
-
-@router.post("/{routine_id}/end", status_code=status.HTTP_202_ACCEPTED, operation_id="routines_end")
-async def end_routine(
-    routine_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    r: Optional[Routine] = db.exec(
-        select(Routine).where(Routine.id == routine_id, Routine.user_id == current_user.id)
-    ).first()
-    if not r:
-        raise HTTPException(status_code=404, detail="Routine not found")
-    await ws_manager.push_routine_event(current_user.id, routine_id, "stop_routine")
-    return {"status": "ended"}
 
 
 
