@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {TaskRead} from "@/api";
+import {formatSecondsToTime} from '@/utils/time'
 
 const props = defineProps<{ modelValue: boolean; tasks: TaskRead[] }>()
 const emit = defineEmits<{ (e: 'update:modelValue', v: boolean): void; (e: 'select', id: number): void }>()
@@ -29,7 +30,7 @@ function close() { emit('update:modelValue', false) }
           <v-list-item v-for="t in filtered" :key="t.id" @click="emit('select', t.id)">
             <v-list-item-title>
               <v-icon size="small" class="mr-2">{{ t.icon_name || 'mdi-checkbox-blank-circle-outline' }}</v-icon>
-              {{ t.name }} <span class="text-medium-emphasis">· {{ t.duration }}m</span>
+              {{ t.name }} <span class="text-medium-emphasis">- {{ formatSecondsToTime(t.duration) }}</span>
             </v-list-item-title>
           </v-list-item>
           <v-list-item v-if="filtered.length===0">

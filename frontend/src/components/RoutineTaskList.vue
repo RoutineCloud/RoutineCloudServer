@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 import {TaskRead} from "@/api";
+import {formatSecondsToTime} from '@/utils/time'
 
 const props = defineProps<{tasks: TaskRead[]}>()
 const selected_task_id = defineModel<number>()
@@ -31,7 +32,7 @@ function select(id: number) {
       <v-list-item v-for="r in tasks" :key="r.id" :active="r.id===selected_task_id" @click="select(r.id)">
         <v-list-item-title>
           <font-awesome-icon :icon="['fas', r.icon_name]" class="mr-2" />
-          {{ r.name }} <span class="text-medium-emphasis">· {{ r.duration }}m</span>
+          {{ r.name }} <span class="text-medium-emphasis">- {{ formatSecondsToTime(r.duration) }}</span>
         </v-list-item-title>
         <template #append>
           <v-btn icon="mdi-arrow-up" size="small" variant="text" @click.stop="$emit('move', r.id, 'up')"></v-btn>

@@ -31,6 +31,7 @@ async function startRoutine(id: number) {
     console.error('Failed to start routine', e)
   } finally {
     startingId.value = null
+    await routinesStore.loadActiveStatus()
   }
 }
 </script>

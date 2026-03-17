@@ -31,7 +31,7 @@ export const useUserStore = defineStore('user', () => {
     oidcUser.value = null;
   });
 
-  if (localStorage.getItem("user")) {
+  if (localStorage.getItem("user") && localStorage.getItem("user") !== null && localStorage.getItem("user") !== "undefined") {
     user.value = JSON.parse(localStorage.getItem("user") as string)
   }
 
@@ -59,13 +59,7 @@ export const useUserStore = defineStore('user', () => {
     loading.value = true;
     error.value = null;
     try {
-      const {data: userData, error: userError} = await Users.usersMe();
-      if (userError) {
-        console.error('Failed to fetch user profile:', userError);
-        error.value = 'Failed to fetch user profile';
-        return false;
-      }
-
+      const {data: userData} = await Users.usersMe();
       user.value = userData as any;
       localStorage.setItem("user", JSON.stringify(userData));
       return true;

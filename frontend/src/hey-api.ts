@@ -6,4 +6,5 @@ export const createClientConfig: CreateClientConfig = (config) => ({
   ...config,
   baseURL: getEnv('VITE_API_BASE_URL') || config.baseURL,
   withCredentials: true,
+  throwOnError: true,
 });

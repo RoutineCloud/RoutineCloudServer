@@ -1,5 +1,8 @@
 import difflib
-from datetime import datetime, timezone
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlmodel import Session, select
 
 from app.core.security import get_current_user
 from app.db.session import get_db
@@ -8,8 +11,6 @@ from app.models.routine_runtime_state import RoutineRuntimeState
 from app.models.user import User
 from app.schemas.routine_control import RoutineStartPayload
 from app.services.routine_command_service import CommandValidationError, routine_command_service
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, select
 
 router = APIRouter(
     prefix="/api/routine-control",
@@ -44,10 +45,10 @@ async def start_routine_by_name(
             db=db,
             user_id=current_user.id,
             command={
-                "command_id": f"server-{current_user.id}-{routine.id}-{int(datetime.now(timezone.utc).timestamp())}",
+                "command_id": f"server-{current_user.id}-{routine.id}-{int(datetime.utcnow().timestamp())}",
                 "type": "routine.start",
                 "routine_id": routine.id,
-                "requested_at": datetime.now(timezone.utc).isoformat(),
+                "requested_at": datetime.utcnow().isoformat(),
             },
             actor={"type": "server", "id": "api:routine-control/start"},
         )
@@ -74,9 +75,9 @@ async def stop_current_routine(
             db=db,
             user_id=current_user.id,
             command={
-                "command_id": f"server-{current_user.id}-{active_routine_id}-{int(datetime.now(timezone.utc).timestamp())}",
+                "command_id": f"server-{current_user.id}-{active_routine_id}-{int(datetime.utcnow().timestamp())}",
                 "type": "routine.end",
-                "requested_at": datetime.now(timezone.utc).isoformat(),
+                "requested_at": datetime.utcnow().isoformat(),
             },
             actor={"type": "server", "id": "api:routine-control/stop"},
         )

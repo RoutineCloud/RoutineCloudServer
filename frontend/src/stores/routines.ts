@@ -1,15 +1,27 @@
 import {defineStore} from 'pinia'
 import {computed, ref} from 'vue'
-import {RoutineCreate, RoutineRead, Routines, RoutineTaskAdd, RoutineUpdate, TaskInRoutineRead} from '@/api'
+import {
+  ActiveRoutineStatusRead,
+  RoutineControl,
+  RoutineCreate,
+  RoutineRead,
+  Routines,
+  RoutineTaskAdd,
+  RoutineUpdate,
+  TaskInRoutineRead
+} from '@/api'
 
 export const useRoutinesStore = defineStore('routines', () => {
   // State
   const routines = ref<RoutineRead[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const activeStatus = ref<ActiveRoutineStatusRead | null>(null)
 
   // Getters
   const all = computed(() => routines.value)
+  const hasActiveRoutine = computed(() => !!activeStatus.value?.active_routine_id)
+  const isActivePaused = computed(() => (activeStatus.value?.status ?? '').toLowerCase() === 'paused')
   const byId = (id: number) => computed(() => routines.value.find(r => r.id === id))
   const totalMinutes = (id: number) => computed(() => {
     const r = routines.value.find(r => r.id === id)
@@ -113,14 +125,43 @@ export const useRoutinesStore = defineStore('routines', () => {
     await Routines.routinesStart({ path: { routine_id: id } })
   }
 
+  async function loadActiveStatus() {
+    const { data } = await Routines.routinesActiveStatus()
+    activeStatus.value = data
+    return data
+  }
+
+  async function pauseActive() {
+    await Routines.routinesActivePause()
+    await loadActiveStatus()
+  }
+
+  async function resumeActive() {
+    await Routines.routinesActiveResume()
+    await loadActiveStatus()
+  }
+
+  async function stopActive() {
+    await RoutineControl.stopCurrentRoutineApiRoutineControlStopPost()
+    await loadActiveStatus()
+  }
+
+  async function skipActive() {
+    await Routines.routinesActiveSkip()
+    await loadActiveStatus()
+  }
+
   return {
     // State
     routines,
     loading,
     error,
+    activeStatus,
 
     // Getters
     all,
+    hasActiveRoutine,
+    isActivePaused,
     byId,
     totalMinutes,
 
@@ -135,5 +176,10 @@ export const useRoutinesStore = defineStore('routines', () => {
     moveItem,
     duplicateItem,
     start,
+    loadActiveStatus,
+    pauseActive,
+    resumeActive,
+    stopActive,
+    skipActive,
   }
 })

@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
 
-from app.models.device import Device
-from app.models.routine import Routine
-from app.models.routine_runtime_state import RoutineRuntimeState
-from app.models.routine_task import RoutineTask
-from app.models.task import Task
-from app.schemas.routine import RoutineRead, TaskInRoutineRead
-from app.schemas.socketio import SocketDevicePayload, SocketRuntimePayload, SocketSnapshotPayload
 from sqlmodel import Session, select
+
+from app.models.device import Device
+from app.models.routine_runtime_state import RoutineRuntimeState
+from app.schemas.routine import RoutineRead
+from app.schemas.socketio import SocketDevicePayload, SocketRuntimePayload, SocketSnapshotPayload
+from app.services.routine_payloads import load_user_routine_with_tasks, load_user_routines_with_tasks
 
 
 def get_or_create_runtime_state(db: Session, user_id: int) -> RoutineRuntimeState:
@@ -26,32 +25,31 @@ def get_or_create_runtime_state(db: Session, user_id: int) -> RoutineRuntimeStat
 
 
 def build_runtime_payload(runtime: RoutineRuntimeState) -> SocketRuntimePayload:
-    return SocketRuntimePayload.model_validate(runtime, from_attributes=True)
-
-
-def _load_routine_tasks(db: Session, routine_id: int) -> list[TaskInRoutineRead]:
-    rows = (
-        db.exec(
-            select(Task, RoutineTask.position)
-            .join(RoutineTask, RoutineTask.task_id == Task.id)
-            .where(RoutineTask.routine_id == routine_id)
-            .order_by(RoutineTask.position.asc())
-        ).all()
+    return SocketRuntimePayload(
+        active_routine_id=runtime.active_routine_id,
+        status=runtime.status,
+        current_task_position=runtime.current_task_position,
+        task_started_at=runtime.task_started_at,
+        routine_started_at=runtime.routine_started_at,
+        paused_at=runtime.paused_at,
+        pause_duration=runtime.pause_duration,
+        updated_at=runtime.updated_at,
     )
-    tasks: list[TaskInRoutineRead] = []
-    for task, position in rows:
-        task_payload = TaskInRoutineRead.model_validate(task, from_attributes=True)
-        tasks.append(task_payload.model_copy(update={"position": position}))
-    return tasks
+
+
+def _device_to_payload(device: Device) -> SocketDevicePayload:
+    return SocketDevicePayload(
+        id=device.id,
+        device_id=device.device_id,
+        name=device.name,
+        type=device.type,
+        status=device.status.value,
+        is_active=device.is_active,
+    )
 
 
 def routine_read_with_tasks(db: Session, user_id: int, routine_id: int) -> Optional[RoutineRead]:
-    routine = db.exec(select(Routine).where(Routine.user_id == user_id, Routine.id == routine_id)).first()
-    if not routine:
-        return None
-
-    routine_payload = RoutineRead.model_validate(routine, from_attributes=True)
-    return routine_payload.model_copy(update={"tasks": _load_routine_tasks(db, routine.id)})
+    return load_user_routine_with_tasks(db, user_id, routine_id)
 
 
 def build_state_payload(
@@ -60,19 +58,18 @@ def build_state_payload(
     runtime: Optional[RoutineRuntimeState] = None,
 ) -> SocketSnapshotPayload:
     current_runtime = runtime or get_or_create_runtime_state(db, user_id)
-
-    routines = db.exec(select(Routine).where(Routine.user_id == user_id)).all()
-    routine_payloads: list[RoutineRead] = []
-    for routine in routines:
-        payload = RoutineRead.model_validate(routine, from_attributes=True)
-        routine_payloads.append(payload.model_copy(update={"tasks": _load_routine_tasks(db, routine.id)}))
+    if current_runtime.recalculate():
+        db.add(current_runtime)
+        db.commit()
+        db.refresh(current_runtime)
+    routine_payloads = load_user_routines_with_tasks(db, user_id)
 
     devices = db.exec(select(Device).where(Device.owner_id == user_id)).all()
-    device_payloads = [SocketDevicePayload.model_validate(device, from_attributes=True) for device in devices]
+    device_payloads = [_device_to_payload(device) for device in devices]
 
     return SocketSnapshotPayload(
         runtime=build_runtime_payload(current_runtime),
         routines=routine_payloads,
         devices=device_payloads,
-        server_time=datetime.now(timezone.utc),
+        server_time=datetime.utcnow(),
     )

@@ -24,6 +24,14 @@ export type ActiveRoutineStatusRead = {
      * Started At
      */
     started_at?: string | null;
+    /**
+     * Paused At
+     */
+    paused_at?: string | null;
+    /**
+     * Pause Duration
+     */
+    pause_duration?: number;
 };
 
 /**

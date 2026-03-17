@@ -45,6 +45,9 @@ class SocketRuntimePayload(SocketModel):
     status: RuntimeStatus
     current_task_position: Optional[int] = None
     task_started_at: Optional[datetime] = None
+    routine_started_at: Optional[datetime] = None
+    paused_at: Optional[datetime] = None
+    pause_duration: int = 0
     updated_at: Optional[datetime] = None
 
 

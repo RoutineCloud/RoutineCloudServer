@@ -15,3 +15,5 @@ class ActiveRoutineStatusRead(BaseModel):
     status: str
     current_task_position: Optional[int] = None
     started_at: Optional[datetime] = None
+    paused_at: Optional[datetime] = None
+    pause_duration: int = 0

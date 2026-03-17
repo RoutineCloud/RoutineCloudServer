@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -14,6 +14,8 @@ from app.models.user import User
 from app.schemas.routine import RoutineCreate, RoutineRead, RoutineTaskAdd, RoutineUpdate, TaskInRoutineRead
 from app.schemas.routine_control import ActiveRoutineStatusRead
 from app.schemas.socketio import CommandType
+from app.services.routine_payloads import load_routine_tasks as _load_routine_tasks
+from app.services.routine_payloads import routine_to_read as _routine_to_read
 from app.services.routine_command_service import CommandValidationError, routine_command_service
 from app.socketio.state import build_runtime_payload
 
@@ -22,38 +24,14 @@ router = APIRouter(
     tags=["routines"],
 )
 
-
-def _routine_to_read(r: Routine, tasks: Optional[List[TaskInRoutineRead]] = None) -> RoutineRead:
-    return RoutineRead(id=r.id, name=r.name, description=r.description, tasks=tasks)
-
-
-def _load_routine_tasks(db: Session, routine_id: int) -> List[TaskInRoutineRead]:
-    stmt = (
-        select(Task, RoutineTask.position)
-        .join(RoutineTask, RoutineTask.task_id == Task.id)
-        .where(RoutineTask.routine_id == routine_id)
-        .order_by(RoutineTask.position.asc())
-    )
-    rows = db.exec(stmt).all()
-    result: List[TaskInRoutineRead] = []
-    for task, position in rows:
-        result.append(
-            TaskInRoutineRead(
-                id=task.id,
-                name=task.name,
-                icon_name=task.icon_name,
-                sound=task.sound,
-                duration=task.duration,
-                position=position,
-            )
-        )
-    return result
-
-
 def _runtime_status(db: Session, user_id: int) -> ActiveRoutineStatusRead:
     runtime = db.exec(select(RoutineRuntimeState).where(RoutineRuntimeState.user_id == user_id)).first()
     if not runtime:
         return ActiveRoutineStatusRead(status="idle")
+    if runtime.recalculate():
+        db.add(runtime)
+        db.commit()
+        db.refresh(runtime)
 
     routine_name: Optional[str] = None
     if runtime.active_routine_id is not None:
@@ -70,11 +48,13 @@ def _runtime_status(db: Session, user_id: int) -> ActiveRoutineStatusRead:
         status=runtime_payload.status.value,
         current_task_position=runtime_payload.current_task_position,
         started_at=runtime_payload.task_started_at,
+        paused_at=runtime_payload.paused_at,
+        pause_duration=runtime_payload.pause_duration,
     )
 
 
 def _server_command_id(user_id: int, suffix: str) -> str:
-    return f"server-{user_id}-{suffix}-{int(datetime.now(timezone.utc).timestamp())}"
+    return f"server-{user_id}-{suffix}-{int(datetime.utcnow().timestamp())}"
 
 
 async def _execute_runtime_command(
@@ -87,7 +67,7 @@ async def _execute_runtime_command(
     payload = {
         "command_id": _server_command_id(user_id, command_type.value),
         "type": command_type.value,
-        "requested_at": datetime.now(timezone.utc).isoformat(),
+        "requested_at": datetime.utcnow().isoformat(),
     }
     if routine_id is not None:
         payload["routine_id"] = routine_id
@@ -243,6 +223,9 @@ async def delete_routine(
         runtime.status = RuntimeStatus.IDLE
         runtime.current_task_position = None
         runtime.task_started_at = None
+        runtime.routine_started_at = None
+        runtime.paused_at = None
+        runtime.pause_duration = 0
         db.add(runtime)
 
     db.delete(r)

@@ -3,6 +3,7 @@ import {onMounted, ref} from 'vue'
 import {useRoutinesStore} from '@/stores/routines'
 import {useRouter} from 'vue-router'
 import RoutineList from '@/components/RoutineList.vue'
+import ActiveRoutinePanel from '@/components/ActiveRoutinePanel.vue'
 
 const router = useRouter()
 const routinesStore = useRoutinesStore()
@@ -35,6 +36,7 @@ function onSelect(id: number) {
         <v-spacer></v-spacer>
       </v-card-title>
       <v-card-text>
+        <ActiveRoutinePanel />
         <RoutineList :routines="routinesStore.all"
                      v-model="selected"
                      @create="onCreate"

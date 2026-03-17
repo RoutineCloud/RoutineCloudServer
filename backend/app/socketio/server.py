@@ -3,8 +3,12 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
+
+from pydantic import ValidationError
+from pydantic_socketio import FastAPISocketIO
+from sqlmodel import Session, select
 
 from app.db.session import engine
 from app.models.device import Device, DeviceStatus
@@ -20,9 +24,6 @@ from app.services.routine_command_service import CommandValidationError, routine
 from app.socketio.auth import SocketAuthError, authenticate_socket_client
 from app.socketio.bus import socketio_bus
 from app.socketio.state import build_state_payload
-from pydantic import ValidationError
-from pydantic_socketio import FastAPISocketIO
-from sqlmodel import Session, select
 
 NAMESPACE = "/device"
 HEARTBEAT_TIMEOUT_SECONDS = 90
@@ -52,7 +53,7 @@ _heartbeat_task: asyncio.Task | None = None
 
 
 def _utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.utcnow()
 
 
 def _parse_auth_payload(auth: SocketAuthPayload | dict[str, Any] | None) -> SocketAuthPayload:

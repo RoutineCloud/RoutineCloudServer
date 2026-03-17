@@ -6,6 +6,7 @@ import {useTasksStore} from '@/stores/tasks'
 import RoutineTaskList from '@/components/RoutineTaskList.vue'
 import TaskDetailPanel from '@/components/TaskDetailPanel.vue'
 import TaskPickerDialog from '@/components/TaskPickerDialog.vue'
+import {formatSecondsToTime} from '@/utils/time'
 
 const route = useRoute()
 const routinesStore = useRoutinesStore()
@@ -42,7 +43,7 @@ watch(routine, (r) => {
 
 const selectedItem = computed(() => routine.value?.tasks.find(i => i.id === selectedItemId.value))
 const selectedTask = computed(() => selectedItem.value ? tasksStore.byId(selectedItem.value.id).value : undefined)
-const totalMinutes = computed(() => routinesStore.totalMinutes(routineId.value).value)
+const totalDurationSeconds = computed(() => routinesStore.totalMinutes(routineId.value).value)
 
 function onAddTask() { showPicker.value = true }
 
@@ -96,7 +97,7 @@ async function saveName() {
               />
               <v-btn color="primary" :disabled="!isDirty || !editName" @click="saveName">Save</v-btn>
               <v-spacer></v-spacer>
-              <div class="text-medium-emphasis">Total: {{ totalMinutes }}m</div>
+              <div class="text-medium-emphasis">Total: {{ formatSecondsToTime(totalDurationSeconds) }}</div>
             </v-card-title>
             <v-card-text>
               <RoutineTaskList

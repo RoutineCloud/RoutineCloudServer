@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Optional
+
+from sqlmodel import Session, select
 
 from app.models.routine import Routine
 from app.models.routine_runtime_state import RoutineRuntimeState, RuntimeStatus
@@ -10,8 +12,11 @@ from app.models.routine_task import RoutineTask
 from app.models.task import Task
 from app.schemas.socketio import ClientCommandPayload, CommandType
 from app.socketio.bus import socketio_bus
-from app.socketio.state import build_runtime_payload, get_or_create_runtime_state, routine_read_with_tasks
-from sqlmodel import Session, select
+from app.socketio.state import (
+    build_runtime_payload,
+    get_or_create_runtime_state,
+    routine_read_with_tasks,
+)
 
 
 class CommandValidationError(Exception):
@@ -37,6 +42,10 @@ class RoutineCommandService:
         command_payload = command if isinstance(command, ClientCommandPayload) else ClientCommandPayload.model_validate(command)
 
         runtime = get_or_create_runtime_state(db, user_id)
+        if runtime.recalculate():
+            db.add(runtime)
+            db.commit()
+            db.refresh(runtime)
         started_payload: Optional[dict[str, Any]] = None
 
         if command_payload.type == CommandType.ROUTINE_START:
@@ -50,6 +59,11 @@ class RoutineCommandService:
         elif command_payload.type == CommandType.TASK_SKIP:
             runtime = self._skip_task(db, runtime)
 
+        if runtime.recalculate():
+            db.add(runtime)
+            db.commit()
+            db.refresh(runtime)
+
         runtime.updated_at = datetime.utcnow()
         db.add(runtime)
         db.commit()
@@ -59,7 +73,7 @@ class RoutineCommandService:
             "command_id": command_payload.command_id,
             "type": command_payload.type.value,
             "runtime": build_runtime_payload(runtime).model_dump(),
-            "effective_at": datetime.now(timezone.utc),
+            "effective_at": datetime.utcnow(),
             "actor": actor,
         }
 
@@ -84,10 +98,11 @@ class RoutineCommandService:
         if not routine:
             raise CommandValidationError("routine_not_found")
         if runtime.active_routine_id is not None:
-            raise CommandValidationError("routine_already_active")
+            if runtime.status != RuntimeStatus.FINISHED:
+                raise CommandValidationError("routine_already_active")
 
         first_task = db.exec(
-            select(Task, RoutineTask.position)
+            select(Task.id)
             .join(RoutineTask, RoutineTask.task_id == Task.id)
             .where(RoutineTask.routine_id == command.routine_id)
             .order_by(RoutineTask.position.asc())
@@ -95,11 +110,14 @@ class RoutineCommandService:
         if not first_task:
             raise CommandValidationError("routine_has_no_tasks")
 
-        _, position = first_task
+        now = datetime.utcnow()
         runtime.active_routine_id = command.routine_id
         runtime.status = RuntimeStatus.RUNNING
-        runtime.current_task_position = position
-        runtime.task_started_at = datetime.utcnow()
+        runtime.current_task_position = 0
+        runtime.task_started_at = now
+        runtime.routine_started_at = now
+        runtime.paused_at = None
+        runtime.pause_duration = 0
 
         routine_payload = routine_read_with_tasks(db, user_id, command.routine_id)
         if not routine_payload:
@@ -119,6 +137,9 @@ class RoutineCommandService:
         runtime.status = RuntimeStatus.IDLE
         runtime.current_task_position = None
         runtime.task_started_at = None
+        runtime.routine_started_at = None
+        runtime.paused_at = None
+        runtime.pause_duration = 0
         return runtime
 
     def _pause_routine(self, runtime: RoutineRuntimeState) -> RoutineRuntimeState:
@@ -128,6 +149,7 @@ class RoutineCommandService:
             raise CommandValidationError("routine_not_running")
 
         runtime.status = RuntimeStatus.PAUSED
+        runtime.paused_at = datetime.utcnow()
         return runtime
 
     def _resume_routine(self, runtime: RoutineRuntimeState) -> RoutineRuntimeState:
@@ -137,11 +159,12 @@ class RoutineCommandService:
             raise CommandValidationError("routine_not_paused")
 
         now = datetime.utcnow()
-        if runtime.task_started_at and runtime.updated_at:
-            paused_delta = now - runtime.updated_at
-            runtime.task_started_at = runtime.task_started_at + paused_delta
-        elif runtime.task_started_at is None:
-            runtime.task_started_at = now
+        if runtime.paused_at is not None:
+            paused_seconds = max(0, int((now - runtime.paused_at).total_seconds()))
+            runtime.pause_duration = max(0, int(runtime.pause_duration or 0)) + paused_seconds
+            if runtime.task_started_at is not None:
+                runtime.task_started_at = runtime.task_started_at + (now - runtime.paused_at)
+        runtime.paused_at = None
 
         runtime.status = RuntimeStatus.RUNNING
         return runtime
@@ -166,8 +189,11 @@ class RoutineCommandService:
             return self._end_routine(runtime)
 
         _, next_position = next_row
+        now = datetime.utcnow()
         runtime.current_task_position = next_position
-        runtime.task_started_at = datetime.utcnow() if runtime.status == RuntimeStatus.RUNNING else None
+        runtime.task_started_at = now
+        if runtime.status == RuntimeStatus.PAUSED:
+            runtime.paused_at = now
         return runtime
 
 

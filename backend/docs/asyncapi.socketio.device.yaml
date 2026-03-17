@@ -1,0 +1,333 @@
+asyncapi: 2.6.0
+id: 'urn:routinecloud:socketio:device-api'
+defaultContentType: application/json
+
+info:
+  title: Routine Cloud Device Socket.IO API
+  version: 1.0.1
+  description: |
+    Socket.IO event contract for device clients.
+    Socket.IO namespace: `/device`.
+
+servers:
+  local:
+    url: localhost:8000/socket.io
+    protocol: socketio
+    description: Local FastAPI + Socket.IO server
+    security:
+      - bearerAuth: []
+
+channels:
+  device.connect:
+    description: Socket.IO connect auth payload for namespace `/device`.
+    publish:
+      operationId: clientConnect
+      summary: Client connects with auth payload
+      message:
+        $ref: '#/components/messages/SocketAuth'
+
+  device.client.status.heartbeat:
+    publish:
+      operationId: clientHeartbeat
+      summary: Client heartbeat (keepalive)
+      message:
+        $ref: '#/components/messages/Heartbeat'
+
+  device.client.state.request:
+    publish:
+      operationId: clientStateRequest
+      summary: Request latest authoritative snapshot
+      message:
+        $ref: '#/components/messages/StateRequest'
+
+  device.client.command:
+    publish:
+      operationId: clientCommand
+      summary: Send routine/task command
+      message:
+        $ref: '#/components/messages/ClientCommand'
+
+  device.server.state.snapshot:
+    subscribe:
+      operationId: serverStateSnapshot
+      summary: Full state snapshot for sync/resync
+      message:
+        $ref: '#/components/messages/StateSnapshot'
+
+  device.server.command.applied:
+    subscribe:
+      operationId: serverCommandApplied
+      summary: Command accepted and applied
+      message:
+        $ref: '#/components/messages/CommandApplied'
+
+  device.server.routine.started:
+    subscribe:
+      operationId: serverRoutineStarted
+      summary: Routine start payload with full routine content
+      message:
+        $ref: '#/components/messages/RoutineStarted'
+
+  device.server.command.rejected:
+    subscribe:
+      operationId: serverCommandRejected
+      summary: Command rejected by server validation
+      message:
+        $ref: '#/components/messages/CommandRejected'
+
+  device.server.error:
+    subscribe:
+      operationId: serverError
+      summary: Generic server error
+      message:
+        $ref: '#/components/messages/ServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  messages:
+    SocketAuth:
+      name: SocketAuth
+      payload:
+        $ref: '#/components/schemas/SocketAuthPayload'
+
+    Heartbeat:
+      name: Heartbeat
+      payload:
+        $ref: '#/components/schemas/HeartbeatPayload'
+
+    StateRequest:
+      name: StateRequest
+      payload:
+        $ref: '#/components/schemas/StateRequestPayload'
+
+    ClientCommand:
+      name: ClientCommand
+      payload:
+        $ref: '#/components/schemas/ClientCommandPayload'
+
+    StateSnapshot:
+      name: StateSnapshot
+      payload:
+        $ref: '#/components/schemas/SocketSnapshotPayload'
+
+    CommandApplied:
+      name: CommandApplied
+      payload:
+        $ref: '#/components/schemas/CommandAppliedPayload'
+
+    RoutineStarted:
+      name: RoutineStarted
+      payload:
+        $ref: '#/components/schemas/RoutineStartedPayload'
+
+    CommandRejected:
+      name: CommandRejected
+      payload:
+        $ref: '#/components/schemas/CommandRejectedPayload'
+
+    ServerError:
+      name: ServerError
+      payload:
+        $ref: '#/components/schemas/SocketErrorPayload'
+
+  schemas:
+    SocketAuthPayload:
+      type: object
+      required: [access_token, device_id]
+      properties:
+        access_token:
+          type: string
+        device_id:
+          type: string
+        id_token:
+          type: string
+          nullable: true
+
+    HeartbeatPayload:
+      type: object
+      required: [ts]
+      properties:
+        ts:
+          type: string
+          format: date-time
+
+    StateRequestPayload:
+      type: object
+      additionalProperties: false
+
+    ClientCommandPayload:
+      type: object
+      required: [command_id, type, requested_at]
+      properties:
+        command_id:
+          type: string
+        type:
+          type: string
+          enum:
+            - routine.start
+            - routine.end
+            - routine.pause
+            - routine.resume
+            - task.skip
+        routine_id:
+          type: integer
+          nullable: true
+        source_device_id:
+          type: string
+          nullable: true
+        requested_at:
+          type: string
+          format: date-time
+
+    SocketRuntimePayload:
+      type: object
+      required: [status]
+      properties:
+        active_routine_id:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [idle, running, paused]
+        current_task_position:
+          type: integer
+          nullable: true
+        task_started_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    SocketDevicePayload:
+      type: object
+      required: [id, device_id, name, type, status, is_active]
+      properties:
+        id:
+          type: integer
+        device_id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+          enum: [online, offline]
+        is_active:
+          type: boolean
+
+    TaskInRoutineRead:
+      type: object
+      required: [id, name, icon_name, sound, duration, position]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        icon_name:
+          type: string
+        sound:
+          type: string
+        duration:
+          type: integer
+        position:
+          type: integer
+
+    RoutineRead:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        tasks:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/TaskInRoutineRead'
+
+    SocketSnapshotPayload:
+      type: object
+      required: [runtime, routines, devices, server_time]
+      properties:
+        runtime:
+          $ref: '#/components/schemas/SocketRuntimePayload'
+        routines:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoutineRead'
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/SocketDevicePayload'
+        server_time:
+          type: string
+          format: date-time
+
+    ActorPayload:
+      type: object
+      required: [type, id]
+      properties:
+        type:
+          type: string
+          enum: [device, server]
+        id:
+          type: string
+
+    CommandAppliedPayload:
+      type: object
+      required: [command_id, type, runtime, effective_at, actor]
+      properties:
+        command_id:
+          type: string
+        type:
+          type: string
+        runtime:
+          $ref: '#/components/schemas/SocketRuntimePayload'
+        effective_at:
+          type: string
+          format: date-time
+        actor:
+          $ref: '#/components/schemas/ActorPayload'
+
+    RoutineStartedPayload:
+      type: object
+      required: [command_id, routine, runtime]
+      properties:
+        command_id:
+          type: string
+        routine:
+          $ref: '#/components/schemas/RoutineRead'
+        runtime:
+          $ref: '#/components/schemas/SocketRuntimePayload'
+
+    CommandRejectedPayload:
+      type: object
+      required: [reason]
+      properties:
+        command_id:
+          type: string
+          nullable: true
+        reason:
+          type: string
+
+    SocketErrorPayload:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
