@@ -1,15 +1,16 @@
-from app.core.config import settings
-from app.db import base as models_base
-from app.db.session import engine
-from app.socketio.server import sio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqladmin import Admin, ModelView
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.core.config import settings
+from app.db import base as models_base
+from app.db.session import engine
+from app.socketio.server import sio
+
 # Create FastAPI app
-app = FastAPI(title="Routine Cloud API")
+app = FastAPI(title="Routine Cloud API Gateway")
 
 
 @app.exception_handler(StarletteHTTPException)
@@ -40,6 +41,23 @@ from app.api.routine import router as routine_router
 from app.api.routine_control import router as routine_control_router
 from app.api.admin import router as admin_router
 
+# Create sub-app for versioning
+v1 = FastAPI(title="Routine Cloud API v1", version="1.0.0")
+
+# Apply common exception handlers to sub-apps
+v1.add_exception_handler(StarletteHTTPException, http_exception_handler)
+
+# Include routers in sub-apps
+v1.include_router(device_router)
+v1.include_router(user_router)
+v1.include_router(task_router)
+v1.include_router(routine_router)
+v1.include_router(routine_control_router)
+v1.include_router(admin_router)
+
+# Mount sub-app to the main gateway
+app.mount("/v1", v1)
+
 admin = Admin(app, engine)
 
 
@@ -48,17 +66,11 @@ class UserAdmin(ModelView, model=models_base.User):
 
 
 admin.add_view(UserAdmin)
-app.include_router(device_router)
-app.include_router(user_router)
-app.include_router(task_router)
-app.include_router(routine_router)
-app.include_router(routine_control_router)
-app.include_router(admin_router)
 
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Routine Cloud API"}
+    return {"message": "Welcome to Routine Cloud API Gateway"}
 
 
 @app.get("/health")

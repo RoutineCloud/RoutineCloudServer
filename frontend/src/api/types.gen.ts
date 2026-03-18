@@ -1079,34 +1079,6 @@ export type StopCurrentRoutineApiRoutineControlStopPostResponses = {
     202: unknown;
 };
 
-export type RootGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/';
-};
-
-export type RootGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
-
-export type HealthCheckHealthGetData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/health';
-};
-
-export type HealthCheckHealthGetResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};
-
 export type ClientOptions = {
-    baseURL: 'http://localhost:8000' | (string & {});
+    baseURL: `${string}://${string}` | (string & {});
 };

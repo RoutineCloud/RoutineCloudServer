@@ -68,7 +68,7 @@ uv run pytest
 ## Realtime API (AsyncAPI)
 
 Socket.IO device API spec (AsyncAPI):
-- `backend/docs/asyncapi.socketio.device.yaml`
+- `backend/openapi_doc/specs/asyncapi.socketio.device.yaml`
 
 You can open this in the AsyncAPI Studio:
 - https://studio.asyncapi.com/

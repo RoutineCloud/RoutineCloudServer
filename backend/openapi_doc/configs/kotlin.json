@@ -1,0 +1,6 @@
+{
+  "library": "jvm-okhttp4",
+  "serializationLibrary": "jackson",
+  "enumPropertyNaming": "original",
+  "useSingleParameter": true
+}
