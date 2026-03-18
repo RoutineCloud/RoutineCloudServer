@@ -69,10 +69,12 @@ jobs:
           if [[ "${{ matrix.language }}" == "typescript-axios" ]]; then
             echo "package_name=@${REPO_OWNER_LOWER}/routine-cloud-sdk-${{ matrix.api_version }}" >> $GITHUB_OUTPUT
             echo "gen_name=typescript-axios" >> $GITHUB_OUTPUT
+            echo "output_dir=typescript-axios-client" >> $GITHUB_OUTPUT
           elif [[ "${{ matrix.language }}" == "kotlin" ]]; then
             echo "package_name=routine-cloud-${{ matrix.api_version }}-client" >> $GITHUB_OUTPUT
             echo "gen_name=kotlin" >> $GITHUB_OUTPUT
             echo "group_id=com.${REPO_OWNER_LOWER}.routine-cloud" >> $GITHUB_OUTPUT
+            echo "output_dir=kotlin-client" >> $GITHUB_OUTPUT
           fi
 
       - name: Generate SDK
@@ -98,7 +100,7 @@ jobs:
       - name: Build & Publish TS
         if: matrix.language == 'typescript-axios'
         run: |
-          cd ${{ steps.metadata.outputs.gen_name }}
+          cd ${{ steps.metadata.outputs.output_dir }}
           npm install
           if npm run | grep -q "build"; then npm run build; fi
           if [[ $GITHUB_REF_TYPE == "tag" ]]; then
@@ -121,7 +123,7 @@ jobs:
       - name: Build & Publish Kotlin
         if: matrix.language == 'kotlin'
         run: |
-          cd ${{ steps.metadata.outputs.gen_name }}
+          cd ${{ steps.metadata.outputs.output_dir }}
           # Generated Kotlin client usually has gradlew or pom.xml
           if [ -f "gradlew" ]; then
             chmod +x gradlew

@@ -2,5 +2,7 @@
   "supportsES6": true,
   "withInterfaces": true,
   "withSeparateModelsAndApi": true,
-  "useSingleParameter": true
+  "useSingleParameter": true,
+  "apiPackage": "api",
+  "modelPackage": "models"
 }

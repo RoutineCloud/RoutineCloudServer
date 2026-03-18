@@ -2,5 +2,8 @@
   "library": "jvm-okhttp4",
   "serializationLibrary": "jackson",
   "enumPropertyNaming": "original",
-  "useSingleParameter": true
+  "useSingleParameter": true,
+  "packageName": "com.routinecloud.api",
+  "modelPackage": "models",
+  "apiPackage": "api"
 }
