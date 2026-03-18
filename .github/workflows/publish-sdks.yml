@@ -1,0 +1,141 @@
+name: Publish SDKs
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  generate-openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Generate OpenAPI specs
+        run: |
+          cd backend
+          uv sync
+          uv run python scripts/generate_openapi.py
+          
+      - name: Upload OpenAPI specs
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-specs
+          path: backend/openapi_doc/
+
+  build-publish-sdk:
+    needs: generate-openapi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        api_version: [v1]
+        language: [typescript-axios, kotlin]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download OpenAPI specs
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-specs
+          path: .
+      
+      - name: Prepare SDK metadata
+        id: metadata
+        shell: bash
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          if [[ $GITHUB_REF_TYPE != "tag" ]]; then
+            # For main branch or manual runs without a tag, use a placeholder version
+            VERSION="0.0.0-snapshot.$(date +%Y%m%d%H%M%S)"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          REPO_OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          
+          if [[ "${{ matrix.language }}" == "typescript-axios" ]]; then
+            echo "package_name=@${REPO_OWNER_LOWER}/routine-cloud-sdk-${{ matrix.api_version }}" >> $GITHUB_OUTPUT
+            echo "gen_name=typescript-axios" >> $GITHUB_OUTPUT
+          elif [[ "${{ matrix.language }}" == "kotlin" ]]; then
+            echo "package_name=routine-cloud-${{ matrix.api_version }}-client" >> $GITHUB_OUTPUT
+            echo "gen_name=kotlin" >> $GITHUB_OUTPUT
+            echo "group_id=com.${REPO_OWNER_LOWER}.routine-cloud" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate SDK
+        uses: openapitools/openapi-generator-action@v2
+        with:
+          generator: ${{ steps.metadata.outputs.gen_name }}
+          openapi-file: backend/openapi_doc/specs/openapi-${{ matrix.api_version }}.json
+          config-file: backend/openapi_doc/configs/${{ steps.metadata.outputs.gen_name }}.json
+          command-args: >
+            --additional-properties=packageVersion=${{ steps.metadata.outputs.version }}
+            ${{ matrix.language == 'typescript-axios' && format('--additional-properties=npmName={0}', steps.metadata.outputs.package_name) || '' }}
+            ${{ matrix.language == 'kotlin' && format('--additional-properties=artifactId={0},groupId={1}', steps.metadata.outputs.package_name, steps.metadata.outputs.group_id) || '' }}
+
+      # TS SDK Build & Publish
+      - name: Setup Node
+        if: matrix.language == 'typescript-axios'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: "@${{ github.repository_owner }}"
+          
+      - name: Build & Publish TS
+        if: matrix.language == 'typescript-axios'
+        run: |
+          cd ${{ steps.metadata.outputs.gen_name }}
+          npm install
+          if npm run | grep -q "build"; then npm run build; fi
+          if [[ $GITHUB_REF_TYPE == "tag" ]]; then
+            npm publish
+          elif [[ $GITHUB_REF_NAME == "main" ]]; then
+            npm publish --tag dev
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Kotlin SDK Build & Publish
+      - name: Setup Java
+        if: matrix.language == 'kotlin'
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          server-id: github-maven
+          
+      - name: Build & Publish Kotlin
+        if: matrix.language == 'kotlin'
+        run: |
+          cd ${{ steps.metadata.outputs.gen_name }}
+          # Generated Kotlin client usually has gradlew or pom.xml
+          if [ -f "gradlew" ]; then
+            chmod +x gradlew
+            ./gradlew build
+            if [[ $GITHUB_REF_TYPE == "tag" || $GITHUB_REF_NAME == "main" ]]; then
+              ./gradlew publish -Pgpr.user=${{ github.actor }} -Pgpr.key=${{ secrets.GITHUB_TOKEN }}
+            fi
+          elif [ -f "pom.xml" ]; then
+            mvn package
+            if [[ $GITHUB_REF_TYPE == "tag" || $GITHUB_REF_NAME == "main" ]]; then
+              # altDeploymentRepository for GitHub Packages
+              mvn deploy -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/${{ github.repository }}
+            fi
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

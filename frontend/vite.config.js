@@ -20,7 +20,7 @@ export default defineConfig({
     allowedHosts: ['hinderingly-monocotyledonous-otilia.ngrok-free.dev'],
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8000/v1',
         changeOrigin: true,
       }
     }

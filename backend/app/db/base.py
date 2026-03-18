@@ -6,6 +6,7 @@ from sqlmodel import SQLModel  # noqa: F401
 
 from app.models.device import Device  # noqa: F401
 from app.models.routine import Routine  # noqa: F401
+from app.models.routine_runtime_state import RoutineRuntimeState  # noqa: F401
 from app.models.routine_task import RoutineTask  # noqa: F401
 from app.models.task import Task  # noqa: F401
 # Import models to register tables and expose for admin usage
@@ -18,4 +19,5 @@ __all__ = [
     "Task",
     "Routine",
     "RoutineTask",
+    "RoutineRuntimeState",
 ]

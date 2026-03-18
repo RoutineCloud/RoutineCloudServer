@@ -10,8 +10,8 @@ This script starts the FastAPI application using uvicorn.
 
 **Usage:**
 ```bash
-# Using pixi
-pixi run start
+# Preferred (via uv)
+uv run python scripts/run.py
 
 # Or directly
 python -m scripts.run
@@ -24,5 +24,5 @@ The application uses SQLAlchemy (via SQLModel) and Alembic for database migratio
 To apply changes to an existing database:
 
 ```bash
-pixi run alembic upgrade head
+uv run alembic upgrade head
 ```

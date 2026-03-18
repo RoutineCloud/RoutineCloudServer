@@ -4,9 +4,8 @@ from datetime import datetime
 from typing import Optional, List
 from typing import TYPE_CHECKING
 
-from sqlmodel import Field, Relationship
-
 from app.models.base import BaseModel
+from sqlmodel import Field, Relationship
 
 if TYPE_CHECKING:
     from .device import Device

@@ -32,11 +32,6 @@ class Settings(BaseSettings):
 
     DATABASE_URL: Optional[str] = None
     
-    # Alexa integration settings
-    # TODO Why do I need this?
-    ALEXA_SKILL_ID: Optional[str] = None
-    SECRETE_ALEXA_KEY: Optional[str] = None
-
     # OIDC configuration
     OIDC_ISSUER: str = "https://issuer.zitadel.ch"
     OIDC_CLIENT_ID: Optional[str] = None

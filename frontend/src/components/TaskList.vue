@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {TaskRead} from "@/api";
+import {formatSecondsToTime} from '@/utils/time'
 
 const props = defineProps<{ tasks: TaskRead[];}>()
 const emit = defineEmits<{
@@ -34,7 +35,7 @@ function select(id: number) {
       <v-list-item v-for="t in filtered" :key="t.id" :active="t.id===modelValue" @click="select(t.id)">
         <v-list-item-title>
           <font-awesome-icon :icon="['fas', t.icon_name]" class="mr-2" />
-          {{ t.name }} <span class="text-medium-emphasis">· {{ t.duration }}m</span>
+          {{ t.name }} <span class="text-medium-emphasis">- {{ formatSecondsToTime(t.duration) }}</span>
         </v-list-item-title>
         <template #append>
           <v-btn icon="mdi-delete" size="small" variant="text" @click.stop="$emit('delete', t.id)"></v-btn>
