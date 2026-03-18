@@ -1,12 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqladmin import Admin, ModelView
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.config import settings
-from app.db import base as models_base
-from app.db.session import engine
 from app.socketio.server import sio
 
 # Create FastAPI app
@@ -57,16 +54,6 @@ v1.include_router(admin_router)
 
 # Mount sub-app to the main gateway
 app.mount("/v1", v1)
-
-admin = Admin(app, engine)
-
-
-class UserAdmin(ModelView, model=models_base.User):
-    column_list = [models_base.User.id, models_base.User.username]
-
-
-admin.add_view(UserAdmin)
-
 
 @app.get("/")
 async def root():
