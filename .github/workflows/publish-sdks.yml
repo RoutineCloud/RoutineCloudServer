@@ -11,19 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
       - name: Generate OpenAPI specs
         run: |
           cd backend
-          uv sync
+          uv sync --locked
           uv run python scripts/generate_openapi.py
           
       - name: Upload OpenAPI specs
@@ -61,6 +63,13 @@ jobs:
           if [[ $GITHUB_REF_TYPE != "tag" ]]; then
             # For main branch or manual runs without a tag, use a placeholder version
             VERSION="0.0.0-snapshot.$(date +%Y%m%d%H%M%S)"
+          elif [[ $VERSION =~ ^[0-9]+$ ]]; then
+            VERSION="${VERSION}.0.0"
+          elif [[ $VERSION =~ ^[0-9]+\.[0-9]+$ ]]; then
+            VERSION="${VERSION}.0"
+          elif [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Unsupported tag version '$GITHUB_REF_NAME'. Use vMAJOR, vMAJOR.MINOR, or vMAJOR.MINOR.PATCH." >&2
+            exit 1
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           
@@ -84,9 +93,9 @@ jobs:
           openapi-file: backend/openapi_doc/specs/openapi-${{ matrix.api_version }}.json
           config-file: backend/openapi_doc/configs/${{ steps.metadata.outputs.gen_name }}.json
           command-args: >
-            --additional-properties=packageVersion=${{ steps.metadata.outputs.version }}
-            ${{ matrix.language == 'typescript-axios' && format('--additional-properties=npmName={0}', steps.metadata.outputs.package_name) || '' }}
-            ${{ matrix.language == 'kotlin' && format('--additional-properties=artifactId={0},groupId={1}', steps.metadata.outputs.package_name, steps.metadata.outputs.group_id) || '' }}
+            -o ${{ steps.metadata.outputs.output_dir }}
+            ${{ matrix.language == 'typescript-axios' && format('--additional-properties=npmVersion={0},npmName={1}', steps.metadata.outputs.version, steps.metadata.outputs.package_name) || '' }}
+            ${{ matrix.language == 'kotlin' && format('--additional-properties=artifactVersion={0},artifactId={1},groupId={2}', steps.metadata.outputs.version, steps.metadata.outputs.package_name, steps.metadata.outputs.group_id) || '' }}
 
       # TS SDK Build & Publish
       - name: Setup Node
