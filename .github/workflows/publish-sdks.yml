@@ -97,6 +97,24 @@ jobs:
             ${{ matrix.language == 'typescript-axios' && format('--additional-properties=npmVersion={0},npmName={1}', steps.metadata.outputs.version, steps.metadata.outputs.package_name) || '' }}
             ${{ matrix.language == 'kotlin' && format('--additional-properties=artifactVersion={0},artifactId={1},groupId={2}', steps.metadata.outputs.version, steps.metadata.outputs.package_name, steps.metadata.outputs.group_id) || '' }}
 
+      - name: Configure Kotlin publish target
+        if: matrix.language == 'kotlin'
+        run: bash .github/scripts/configure-kotlin-github-packages.sh "${{ steps.metadata.outputs.output_dir }}"
+
+      - name: Inspect Kotlin publish setup
+        if: matrix.language == 'kotlin'
+        shell: bash
+        env:
+          SDK_GROUP_ID: ${{ steps.metadata.outputs.group_id }}
+          SDK_ARTIFACT_ID: ${{ steps.metadata.outputs.package_name }}
+          SDK_VERSION: ${{ steps.metadata.outputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd ${{ steps.metadata.outputs.output_dir }}
+          echo "Publishing Kotlin coordinates ${SDK_GROUP_ID}:${SDK_ARTIFACT_ID}:${SDK_VERSION}"
+          ls -la
+          grep -nE 'maven-publish|publishing|MavenPublication|GitHubPackages|maven.pkg.github.com|^group =|^version =' build.gradle build.gradle.kts || true
+
       # TS SDK Build & Publish
       - name: Setup Node
         if: matrix.language == 'typescript-axios'
@@ -131,22 +149,24 @@ jobs:
           
       - name: Build & Publish Kotlin
         if: matrix.language == 'kotlin'
+        shell: bash
+        env:
+          SDK_GROUP_ID: ${{ steps.metadata.outputs.group_id }}
+          SDK_ARTIFACT_ID: ${{ steps.metadata.outputs.package_name }}
+          SDK_VERSION: ${{ steps.metadata.outputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd ${{ steps.metadata.outputs.output_dir }}
-          # Generated Kotlin client usually has gradlew or pom.xml
-          if [ -f "gradlew" ]; then
-            chmod +x gradlew
-            ./gradlew build
-            if [[ $GITHUB_REF_TYPE == "tag" || $GITHUB_REF_NAME == "main" ]]; then
-              ./gradlew publish -Pgpr.user=${{ github.actor }} -Pgpr.key=${{ secrets.GITHUB_TOKEN }}
-            fi
-          elif [ -f "pom.xml" ]; then
-            mvn package
-            if [[ $GITHUB_REF_TYPE == "tag" || $GITHUB_REF_NAME == "main" ]]; then
-              # altDeploymentRepository for GitHub Packages
-              mvn deploy -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/${{ github.repository }}
-            fi
+          if [ ! -f "gradlew" ]; then
+            echo "Expected gradlew in generated Kotlin client"
+            exit 1
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          chmod +x gradlew
+          ./gradlew --no-daemon build
+          ./gradlew --no-daemon tasks --all | grep -i publish || true
+          ./gradlew --no-daemon properties | grep -E '^(group|version|name):' || true
+          ./gradlew --no-daemon help --task publishGithubPublicationToGitHubPackagesRepository || true
+          if [[ $GITHUB_REF_TYPE == "tag" || $GITHUB_REF_NAME == "main" ]]; then
+            ./gradlew --no-daemon publishGithubPublicationToGitHubPackagesRepository --info --stacktrace --rerun-tasks
+          fi
 
