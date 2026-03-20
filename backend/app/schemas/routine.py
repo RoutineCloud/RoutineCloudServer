@@ -2,6 +2,8 @@ from typing import List, Optional
 
 from sqlmodel import SQLModel
 
+from app.models.routine_access import AccessLevel
+
 
 class RoutineBase(SQLModel):
     name: str
@@ -23,6 +25,7 @@ class TaskInRoutineRead(SQLModel):
 
 class RoutineRead(RoutineBase):
     id: int
+    access_level: Optional[AccessLevel] = None
     tasks: Optional[List[TaskInRoutineRead]] = None
 
     model_config = {"title": "Routine"}

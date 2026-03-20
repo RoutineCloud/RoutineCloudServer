@@ -1,13 +1,13 @@
 from typing import Optional, TYPE_CHECKING, List
 
-from sqlmodel import Field, Relationship
+from sqlmodel import Relationship
 
 from .base import BaseModel
+from .routine_access import RoutineAccess
 from .routine_task import RoutineTask
 
 if TYPE_CHECKING:
     from .task import Task
-    from .user import User
 
 
 class Routine(BaseModel, table=True):
@@ -17,10 +17,9 @@ class Routine(BaseModel, table=True):
 
     name: str
     description: Optional[str] = None
-    user_id: int = Field(foreign_key="users.id")
 
     # Relationships
-    owner: "User" = Relationship(back_populates="routines", sa_relationship_kwargs={"foreign_keys": "Routine.user_id"})
+    accesses: List[RoutineAccess] = Relationship(back_populates="routine", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
     routine_tasks: List[RoutineTask] = Relationship(back_populates="routine", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
     tasks: List["Task"] = Relationship(back_populates="routines", link_model=RoutineTask)

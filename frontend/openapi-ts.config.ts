@@ -1,7 +1,11 @@
+import {resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {defineConfig} from '@hey-api/openapi-ts';
 
+const rootDir = fileURLToPath(new URL('.', import.meta.url));
+
 export default defineConfig({
-  input: 'http://localhost:8000/v1/openapi.json', // sign up at app.heyapi.dev
+  input: resolve(rootDir, '../backend/openapi_doc/specs/openapi-v1.json'),
   output: 'src/api',
   plugins: [
     '@hey-api/typescript',

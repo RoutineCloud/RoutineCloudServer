@@ -1,5 +1,5 @@
 // src/hey-api.ts
-import type {CreateClientConfig} from "./api/client.gen"
+import type {CreateClientConfig} from "./api/v1/client.gen"
 import {getEnv} from "@/env";
 
 export const createClientConfig: CreateClientConfig = (config) => ({

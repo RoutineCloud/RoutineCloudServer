@@ -4,12 +4,13 @@ from datetime import datetime
 from typing import Optional, List
 from typing import TYPE_CHECKING
 
-from app.models.base import BaseModel
 from sqlmodel import Field, Relationship
+
+from app.models.base import BaseModel
+from .routine_access import RoutineAccess
 
 if TYPE_CHECKING:
     from .device import Device
-    from .routine import Routine
     from .task import Task
 
 
@@ -26,7 +27,7 @@ class User(BaseModel, table=True):
 
     # Relationships
     devices: List["Device"] = Relationship(back_populates="owner")
-    routines: List["Routine"] = Relationship(back_populates="owner")
+    routine_accesses: List["RoutineAccess"] = Relationship(back_populates="user")
     tasks: List["Task"] = Relationship(back_populates="owner")
 
     def __repr__(self) -> str:

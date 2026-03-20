@@ -1294,6 +1294,15 @@
   },
   "components": {
     "schemas": {
+      "AccessLevel": {
+        "type": "string",
+        "enum": [
+          "owner",
+          "write",
+          "read"
+        ],
+        "title": "AccessLevel"
+      },
       "ActiveRoutineStatusRead": {
         "properties": {
           "active_routine_id": {
@@ -1424,6 +1433,10 @@
           "id": {
             "type": "integer",
             "title": "Id"
+          },
+          "access_level": {
+            "$ref": "#/components/schemas/AccessLevel",
+            "nullable": true
           },
           "tasks": {
             "title": "Tasks",

@@ -7,6 +7,7 @@ from sqlmodel import Session, select
 from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models.routine import Routine
+from app.models.routine_access import RoutineAccess, AccessLevel
 from app.models.routine_runtime_state import RoutineRuntimeState, RuntimeStatus
 from app.models.routine_task import RoutineTask
 from app.models.task import Task
@@ -14,9 +15,9 @@ from app.models.user import User
 from app.schemas.routine import RoutineCreate, RoutineRead, RoutineTaskAdd, RoutineUpdate, TaskInRoutineRead
 from app.schemas.routine_control import ActiveRoutineStatusRead
 from app.schemas.socketio import CommandType
+from app.services.routine_command_service import CommandValidationError, routine_command_service
 from app.services.routine_payloads import load_routine_tasks as _load_routine_tasks
 from app.services.routine_payloads import routine_to_read as _routine_to_read
-from app.services.routine_command_service import CommandValidationError, routine_command_service
 from app.socketio.state import build_runtime_payload
 
 router = APIRouter(
@@ -86,8 +87,13 @@ async def create_routine(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    r = Routine(name=payload.name, description=payload.description, user_id=current_user.id)
+    r = Routine(name=payload.name, description=payload.description)
     db.add(r)
+    db.flush()
+    
+    access = RoutineAccess(user_id=current_user.id, routine_id=r.id, access_level=AccessLevel.OWNER)
+    db.add(access)
+    
     db.commit()
     db.refresh(r)
     return _routine_to_read(r, [])
@@ -99,10 +105,18 @@ async def list_routines(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    routines = db.exec(select(Routine).where(Routine.user_id == current_user.id)).all()
+    # Get all routines where the user has any access
+    rows = db.exec(
+        select(Routine, RoutineAccess.access_level)
+        .join(RoutineAccess)
+        .where(RoutineAccess.user_id == current_user.id)
+    ).all()
     if include_tasks:
-        return [_routine_to_read(r, _load_routine_tasks(db, r.id)) for r in routines]
-    return [_routine_to_read(r, None) for r in routines]
+        return [
+            _routine_to_read(r, _load_routine_tasks(db, r.id), access_level=al)
+            for r, al in rows
+        ]
+    return [_routine_to_read(r, None, access_level=al) for r, al in rows]
 
 
 @router.get("/active/status", response_model=ActiveRoutineStatusRead, operation_id="routines_active_status")
@@ -171,7 +185,9 @@ async def get_routine(
     current_user: User = Depends(get_current_user),
 ):
     r: Optional[Routine] = db.exec(
-        select(Routine).where(Routine.id == routine_id, Routine.user_id == current_user.id)
+        select(Routine)
+        .join(RoutineAccess)
+        .where(Routine.id == routine_id, RoutineAccess.user_id == current_user.id)
     ).first()
     if not r:
         raise HTTPException(status_code=404, detail="Routine not found")
@@ -187,10 +203,16 @@ async def update_routine(
     current_user: User = Depends(get_current_user),
 ):
     r: Optional[Routine] = db.exec(
-        select(Routine).where(Routine.id == routine_id, Routine.user_id == current_user.id)
+        select(Routine)
+        .join(RoutineAccess)
+        .where(
+            Routine.id == routine_id,
+            RoutineAccess.user_id == current_user.id,
+            RoutineAccess.access_level.in_([AccessLevel.OWNER, AccessLevel.WRITE])
+        )
     ).first()
     if not r:
-        raise HTTPException(status_code=404, detail="Routine not found")
+        raise HTTPException(status_code=404, detail="Routine not found or insufficient permissions")
 
     if payload.name is not None:
         r.name = payload.name
@@ -212,10 +234,16 @@ async def delete_routine(
     current_user: User = Depends(get_current_user),
 ):
     r: Optional[Routine] = db.exec(
-        select(Routine).where(Routine.id == routine_id, Routine.user_id == current_user.id)
+        select(Routine)
+        .join(RoutineAccess)
+        .where(
+            Routine.id == routine_id,
+            RoutineAccess.user_id == current_user.id,
+            RoutineAccess.access_level == AccessLevel.OWNER
+        )
     ).first()
     if not r:
-        raise HTTPException(status_code=404, detail="Routine not found")
+        raise HTTPException(status_code=404, detail="Routine not found or insufficient permissions")
 
     runtime = db.exec(select(RoutineRuntimeState).where(RoutineRuntimeState.user_id == current_user.id)).first()
     if runtime and runtime.active_routine_id == r.id:
@@ -240,7 +268,9 @@ async def list_routine_tasks(
     current_user: User = Depends(get_current_user),
 ):
     r: Optional[Routine] = db.exec(
-        select(Routine).where(Routine.id == routine_id, Routine.user_id == current_user.id)
+        select(Routine)
+        .join(RoutineAccess)
+        .where(Routine.id == routine_id, RoutineAccess.user_id == current_user.id)
     ).first()
     if not r:
         raise HTTPException(status_code=404, detail="Routine not found")
@@ -255,10 +285,16 @@ async def add_task_to_routine(
     current_user: User = Depends(get_current_user),
 ):
     r: Optional[Routine] = db.exec(
-        select(Routine).where(Routine.id == routine_id, Routine.user_id == current_user.id)
+        select(Routine)
+        .join(RoutineAccess)
+        .where(
+            Routine.id == routine_id,
+            RoutineAccess.user_id == current_user.id,
+            RoutineAccess.access_level.in_([AccessLevel.OWNER, AccessLevel.WRITE])
+        )
     ).first()
     if not r:
-        raise HTTPException(status_code=404, detail="Routine not found")
+        raise HTTPException(status_code=404, detail="Routine not found or insufficient permissions")
 
     t: Optional[Task] = db.get(Task, payload.task_id)
     if not t:
@@ -300,10 +336,16 @@ async def remove_task_from_routine(
     current_user: User = Depends(get_current_user),
 ):
     r: Optional[Routine] = db.exec(
-        select(Routine).where(Routine.id == routine_id, Routine.user_id == current_user.id)
+        select(Routine)
+        .join(RoutineAccess)
+        .where(
+            Routine.id == routine_id,
+            RoutineAccess.user_id == current_user.id,
+            RoutineAccess.access_level.in_([AccessLevel.OWNER, AccessLevel.WRITE])
+        )
     ).first()
     if not r:
-        raise HTTPException(status_code=404, detail="Routine not found")
+        raise HTTPException(status_code=404, detail="Routine not found or insufficient permissions")
 
     link: Optional[RoutineTask] = db.exec(
         select(RoutineTask).where(RoutineTask.routine_id == r.id, RoutineTask.position == position)
@@ -330,7 +372,9 @@ async def start_routine(
     current_user: User = Depends(get_current_user),
 ):
     r: Optional[Routine] = db.exec(
-        select(Routine).where(Routine.id == routine_id, Routine.user_id == current_user.id)
+        select(Routine)
+        .join(RoutineAccess)
+        .where(Routine.id == routine_id, RoutineAccess.user_id == current_user.id)
     ).first()
     if not r:
         raise HTTPException(status_code=404, detail="Routine not found")
