@@ -68,6 +68,40 @@ export type DeviceRead = {
 export type DeviceStatus = 'online' | 'offline';
 
 /**
+ * FriendAdd
+ */
+export type FriendAdd = {
+    /**
+     * Friend Code
+     */
+    friend_code: string;
+};
+
+/**
+ * FriendRead
+ */
+export type FriendRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Username
+     */
+    username: string;
+    /**
+     * Profile Picture
+     */
+    profile_picture?: string | null;
+    status?: FriendshipStatus;
+};
+
+/**
+ * FriendshipStatus
+ */
+export type FriendshipStatus = 'pending' | 'accepted';
+
+/**
  * HTTPValidationError
  */
 export type HttpValidationError = {
@@ -278,9 +312,28 @@ export type UserRead = {
      */
     oidc_sub: string;
     /**
+     * Friend Code
+     */
+    friend_code?: string | null;
+    /**
+     * Profile Picture
+     */
+    profile_picture?: string | null;
+    /**
      * Id
      */
     id: number;
+};
+
+/**
+ * UserUpdate
+ * Schema for updating a user.
+ */
+export type UserUpdate = {
+    /**
+     * Profile Picture
+     */
+    profile_picture?: string | null;
 };
 
 /**
@@ -411,6 +464,41 @@ export type UsersMeResponses = {
 };
 
 export type UsersMeResponse = UsersMeResponses[keyof UsersMeResponses];
+
+export type UsersUpdateMeData = {
+    body: UserUpdate;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/users/me';
+};
+
+export type UsersUpdateMeErrors = {
+    /**
+     * Not found
+     */
+    404: unknown;
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UsersUpdateMeError = UsersUpdateMeErrors[keyof UsersUpdateMeErrors];
+
+export type UsersUpdateMeResponses = {
+    /**
+     * Successful Response
+     */
+    200: UserRead;
+};
+
+export type UsersUpdateMeResponse = UsersUpdateMeResponses[keyof UsersUpdateMeResponses];
 
 export type UsersListData = {
     body?: never;
@@ -1083,6 +1171,201 @@ export type StopCurrentRoutineApiRoutineControlStopPostResponses = {
      * Successful Response
      */
     202: unknown;
+};
+
+export type FriendsListData = {
+    body?: never;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/friends/';
+};
+
+export type FriendsListErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type FriendsListError = FriendsListErrors[keyof FriendsListErrors];
+
+export type FriendsListResponses = {
+    /**
+     * Response Friends List
+     * Successful Response
+     */
+    200: Array<FriendRead>;
+};
+
+export type FriendsListResponse = FriendsListResponses[keyof FriendsListResponses];
+
+export type FriendsRequestsListData = {
+    body?: never;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/friends/requests';
+};
+
+export type FriendsRequestsListErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type FriendsRequestsListError = FriendsRequestsListErrors[keyof FriendsRequestsListErrors];
+
+export type FriendsRequestsListResponses = {
+    /**
+     * Response Friends Requests List
+     * Successful Response
+     */
+    200: Array<FriendRead>;
+};
+
+export type FriendsRequestsListResponse = FriendsRequestsListResponses[keyof FriendsRequestsListResponses];
+
+export type FriendsAddData = {
+    body: FriendAdd;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/friends/add';
+};
+
+export type FriendsAddErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type FriendsAddError = FriendsAddErrors[keyof FriendsAddErrors];
+
+export type FriendsAddResponses = {
+    /**
+     * Successful Response
+     */
+    201: unknown;
+};
+
+export type FriendsAcceptData = {
+    body?: never;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path: {
+        /**
+         * Friend Id
+         */
+        friend_id: number;
+    };
+    query?: never;
+    url: '/api/friends/{friend_id}/accept';
+};
+
+export type FriendsAcceptErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type FriendsAcceptError = FriendsAcceptErrors[keyof FriendsAcceptErrors];
+
+export type FriendsAcceptResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type FriendsDeclineData = {
+    body?: never;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path: {
+        /**
+         * Friend Id
+         */
+        friend_id: number;
+    };
+    query?: never;
+    url: '/api/friends/{friend_id}/decline';
+};
+
+export type FriendsDeclineErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type FriendsDeclineError = FriendsDeclineErrors[keyof FriendsDeclineErrors];
+
+export type FriendsDeclineResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type FriendsRemoveData = {
+    body?: never;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path: {
+        /**
+         * Friend Id
+         */
+        friend_id: number;
+    };
+    query?: never;
+    url: '/api/friends/{friend_id}';
+};
+
+export type FriendsRemoveErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type FriendsRemoveError = FriendsRemoveErrors[keyof FriendsRemoveErrors];
+
+export type FriendsRemoveResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
 };
 
 export type ClientOptions = {

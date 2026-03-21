@@ -37,6 +37,7 @@ from app.api.task import router as task_router
 from app.api.routine import router as routine_router
 from app.api.routine_control import router as routine_control_router
 from app.api.admin import router as admin_router
+from app.api.friends import router as friends_router
 
 # Create sub-app for versioning
 v1 = FastAPI(title="Routine Cloud API v1", version="1.0.0")
@@ -51,6 +52,7 @@ v1.include_router(task_router)
 v1.include_router(routine_router)
 v1.include_router(routine_control_router)
 v1.include_router(admin_router)
+v1.include_router(friends_router)
 
 # Mount sub-app to the main gateway
 app.mount("/v1", v1)
