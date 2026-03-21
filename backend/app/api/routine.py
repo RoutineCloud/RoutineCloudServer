@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models.routine import Routine
-from app.models.routine_access import RoutineAccess, AccessLevel
+from app.models.routine_access import AccessLevel, RoutineAccess
 from app.models.routine_runtime_state import RoutineRuntimeState, RuntimeStatus
 from app.models.routine_task import RoutineTask
 from app.models.task import Task
@@ -37,7 +37,9 @@ def _runtime_status(db: Session, user_id: int) -> ActiveRoutineStatusRead:
     routine_name: Optional[str] = None
     if runtime.active_routine_id is not None:
         routine = db.exec(
-            select(Routine).where(Routine.id == runtime.active_routine_id, Routine.user_id == user_id)
+            select(Routine)
+            .join(RoutineAccess)
+            .where(Routine.id == runtime.active_routine_id, RoutineAccess.user_id == user_id)
         ).first()
         if routine:
             routine_name = routine.name

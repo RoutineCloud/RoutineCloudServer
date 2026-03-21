@@ -7,6 +7,7 @@ from sqlmodel import Session, select
 from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models.routine import Routine
+from app.models.routine_access import RoutineAccess
 from app.models.routine_runtime_state import RoutineRuntimeState
 from app.models.user import User
 from app.schemas.routine_control import RoutineStartPayload
@@ -25,7 +26,9 @@ async def start_routine_by_name(
     current_user: User = Depends(get_current_user),
 ):
     routines = db.exec(
-        select(Routine).where(Routine.user_id == current_user.id)
+        select(Routine)
+        .join(RoutineAccess)
+        .where(RoutineAccess.user_id == current_user.id)
     ).all()
 
     if not routines:

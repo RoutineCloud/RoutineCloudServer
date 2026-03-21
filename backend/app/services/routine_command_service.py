@@ -7,6 +7,7 @@ from typing import Any, Optional
 from sqlmodel import Session, select
 
 from app.models.routine import Routine
+from app.models.routine_access import RoutineAccess
 from app.models.routine_runtime_state import RoutineRuntimeState, RuntimeStatus
 from app.models.routine_task import RoutineTask
 from app.models.task import Task
@@ -94,7 +95,11 @@ class RoutineCommandService:
         if command.routine_id is None:
             raise CommandValidationError("missing_routine_id")
 
-        routine = db.exec(select(Routine).where(Routine.id == command.routine_id, Routine.user_id == user_id)).first()
+        routine = db.exec(
+            select(Routine)
+            .join(RoutineAccess)
+            .where(Routine.id == command.routine_id, RoutineAccess.user_id == user_id)
+        ).first()
         if not routine:
             raise CommandValidationError("routine_not_found")
         if runtime.active_routine_id is not None:
