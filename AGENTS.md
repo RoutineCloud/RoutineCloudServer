@@ -13,7 +13,8 @@
 When Codex changes any REST API contract (routes, request/response schemas, OpenAPI output, or related backend model/serializer behavior), Codex must run the project skill at `.codex/skills/generate-openapi-ts-api/` to regenerate the frontend client before finishing.
 
 Use:
-- `bash .codex/skills/generate-openapi-ts-api/scripts/generate_api.sh`
+- `powershell -File .codex/skills/generate-openapi-ts-api/scripts/generate_api.ps1` (Windows)
+- `bash .codex/skills/generate-openapi-ts-api/scripts/generate_api.sh` (Linux/macOS)
 
 Treat stale generated files in `frontend/src/api/` as a blocking issue for API-related changes.
 

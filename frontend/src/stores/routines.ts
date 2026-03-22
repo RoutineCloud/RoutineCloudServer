@@ -1,11 +1,13 @@
 import {defineStore} from 'pinia'
 import {computed, ref} from 'vue'
 import {
+  AccessLevel,
   ActiveRoutineStatusRead,
   RoutineControl,
   RoutineCreate,
   RoutineRead,
   Routines,
+  RoutineShareRead,
   RoutineTaskAdd,
   RoutineUpdate,
   TaskInRoutineRead
@@ -17,6 +19,7 @@ export const useRoutinesStore = defineStore('routines', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
   const activeStatus = ref<ActiveRoutineStatusRead | null>(null)
+  const shares = ref<Record<number, RoutineShareRead[]>>({})
 
   // Getters
   const all = computed(() => routines.value)
@@ -151,12 +154,49 @@ export const useRoutinesStore = defineStore('routines', () => {
     await loadActiveStatus()
   }
 
+  // Sharing
+  async function loadShares(routineId: number) {
+    const { data } = await Routines.routinesSharesList({ path: { routine_id: routineId } })
+    shares.value[routineId] = data
+    return data
+  }
+
+  async function shareRoutine(routineId: number, userId: number, accessLevel: AccessLevel = 'read') {
+    const { data } = await Routines.routinesSharesCreate({
+      path: { routine_id: routineId },
+      body: { user_id: userId, access_level: accessLevel }
+    })
+    if (!shares.value[routineId]) shares.value[routineId] = []
+    shares.value[routineId].push(data)
+    return data
+  }
+
+  async function updateShare(routineId: number, userId: number, accessLevel: AccessLevel) {
+    const { data } = await Routines.routinesSharesUpdate({
+      path: { routine_id: routineId, user_id: userId },
+      body: { access_level: accessLevel }
+    })
+    const idx = shares.value[routineId]?.findIndex(s => s.user_id === userId)
+    if (idx !== undefined && idx !== -1) {
+      shares.value[routineId][idx] = data
+    }
+    return data
+  }
+
+  async function unshareRoutine(routineId: number, userId: number) {
+    await Routines.routinesSharesDelete({ path: { routine_id: routineId, user_id: userId } })
+    if (shares.value[routineId]) {
+      shares.value[routineId] = shares.value[routineId].filter(s => s.user_id !== userId)
+    }
+  }
+
   return {
     // State
     routines,
     loading,
     error,
     activeStatus,
+    shares,
 
     // Getters
     all,
@@ -181,5 +221,9 @@ export const useRoutinesStore = defineStore('routines', () => {
     resumeActive,
     stopActive,
     skipActive,
+    loadShares,
+    shareRoutine,
+    updateShare,
+    unshareRoutine
   }
 })

@@ -41,6 +41,7 @@ class ClientCommandPayload(SocketModel):
 
 
 class SocketRuntimePayload(SocketModel):
+    user_ids: list[int] = []
     active_routine_id: Optional[int] = None
     status: RuntimeStatus
     current_task_position: Optional[int] = None

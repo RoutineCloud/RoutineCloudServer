@@ -8,10 +8,10 @@ from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models.routine import Routine
 from app.models.routine_access import RoutineAccess
-from app.models.routine_runtime_state import RoutineRuntimeState
 from app.models.user import User
 from app.schemas.routine_control import RoutineStartPayload
 from app.services.routine_command_service import CommandValidationError, routine_command_service
+from app.socketio.state import get_runtime_state_for_user
 
 router = APIRouter(
     prefix="/api/routine-control",
@@ -66,9 +66,7 @@ async def stop_current_routine(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    runtime = db.exec(
-        select(RoutineRuntimeState).where(RoutineRuntimeState.user_id == current_user.id)
-    ).first()
+    runtime = get_runtime_state_for_user(db, current_user.id)
     active_routine_id = runtime.active_routine_id if runtime else None
     if active_routine_id is None:
         raise HTTPException(status_code=404, detail="No active routine")

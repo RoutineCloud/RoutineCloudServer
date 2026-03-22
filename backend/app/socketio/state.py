@@ -6,26 +6,40 @@ from typing import Optional
 from sqlmodel import Session, select
 
 from app.models.device import Device
-from app.models.routine_runtime_state import RoutineRuntimeState
+from app.models.routine_runtime_state import RoutineRuntimeState, RoutineRuntimeStateParticipant
 from app.schemas.routine import RoutineRead
 from app.schemas.socketio import SocketDevicePayload, SocketRuntimePayload, SocketSnapshotPayload
 from app.services.routine_payloads import load_user_routine_with_tasks, load_user_routines_with_tasks
 
 
+def get_runtime_state_for_user(db: Session, user_id: int) -> Optional[RoutineRuntimeState]:
+    participant = db.exec(
+        select(RoutineRuntimeStateParticipant).where(RoutineRuntimeStateParticipant.user_id == user_id)
+    ).first()
+    return participant.runtime_state if participant else None
+
+
 def get_or_create_runtime_state(db: Session, user_id: int) -> RoutineRuntimeState:
-    runtime = db.exec(select(RoutineRuntimeState).where(RoutineRuntimeState.user_id == user_id)).first()
+    runtime = get_runtime_state_for_user(db, user_id)
     if runtime:
         return runtime
 
-    runtime = RoutineRuntimeState(user_id=user_id)
+    runtime = RoutineRuntimeState()
     db.add(runtime)
+    db.commit()
+    db.refresh(runtime)
+
+    participant = RoutineRuntimeStateParticipant(runtime_state_id=runtime.id, user_id=user_id)
+    db.add(participant)
     db.commit()
     db.refresh(runtime)
     return runtime
 
 
 def build_runtime_payload(runtime: RoutineRuntimeState) -> SocketRuntimePayload:
+    user_ids = [p.user_id for p in (runtime.participants or [])]
     return SocketRuntimePayload(
+        user_ids=user_ids,
         active_routine_id=runtime.active_routine_id,
         status=runtime.status,
         current_task_position=runtime.current_task_position,

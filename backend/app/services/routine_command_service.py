@@ -4,11 +4,16 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Optional
 
+from sqlalchemy import delete, func
 from sqlmodel import Session, select
 
 from app.models.routine import Routine
-from app.models.routine_access import RoutineAccess
-from app.models.routine_runtime_state import RoutineRuntimeState, RuntimeStatus
+from app.models.routine_access import AccessLevel, RoutineAccess, StartMode
+from app.models.routine_runtime_state import (
+    RoutineRuntimeState,
+    RoutineRuntimeStateParticipant,
+    RuntimeStatus,
+)
 from app.models.routine_task import RoutineTask
 from app.models.task import Task
 from app.schemas.socketio import ClientCommandPayload, CommandType
@@ -78,10 +83,16 @@ class RoutineCommandService:
             "actor": actor,
         }
 
-        await socketio_bus.emit_to_user(user_id, "server.command.applied", applied_payload)
-        if started_payload:
-            started_payload["runtime"] = build_runtime_payload(runtime).model_dump()
-            await socketio_bus.emit_to_user(user_id, "server.routine.started", started_payload)
+        target_users = [p.user_id for p in (runtime.participants or [])]
+        if not target_users:
+            target_users = [user_id]
+        for tid in target_users:
+            await socketio_bus.emit_to_user(tid, "server.command.applied", applied_payload)
+            if started_payload:
+                # Refresh started_payload runtime for each user if it contains user-specific info
+                # But here it's shared.
+                started_payload["runtime"] = build_runtime_payload(runtime).model_dump()
+                await socketio_bus.emit_to_user(tid, "server.routine.started", started_payload)
 
         return CommandResult(applied_payload=applied_payload, started_payload=started_payload)
 
@@ -114,6 +125,54 @@ class RoutineCommandService:
         ).first()
         if not first_task:
             raise CommandValidationError("routine_has_no_tasks")
+
+        # Discover participants based on start_mode
+        accesses = db.exec(select(RoutineAccess).where(RoutineAccess.routine_id == routine.id)).all()
+        starter_acc = next((a for a in accesses if a.user_id == user_id), None)
+        is_owner = starter_acc.access_level == AccessLevel.OWNER if starter_acc else False
+
+        participant_ids = {user_id}
+        for acc in accesses:
+            if acc.user_id == user_id:
+                continue
+            if acc.start_mode == StartMode.FOLLOW_ANY or (
+                acc.start_mode == StartMode.FOLLOW_OWNER and is_owner
+            ):
+                participant_ids.add(acc.user_id)
+
+        # Remove participants from ANY other runtime states and move them to this one
+        involved_runtimes = set(
+            db.exec(
+                select(RoutineRuntimeStateParticipant.runtime_state_id).where(
+                    RoutineRuntimeStateParticipant.user_id.in_(list(participant_ids))
+                )
+            ).all()
+        )
+
+        db.exec(
+            delete(RoutineRuntimeStateParticipant).where(
+                RoutineRuntimeStateParticipant.user_id.in_(list(participant_ids))
+            )
+        )
+        for pid in participant_ids:
+            db.add(RoutineRuntimeStateParticipant(runtime_state_id=runtime.id, user_id=pid))
+
+        db.commit()
+
+        # Cleanup empty runtimes
+        for rid in involved_runtimes:
+            if rid == runtime.id:
+                continue
+            count = db.exec(
+                select(func.count(RoutineRuntimeStateParticipant.id)).where(
+                    RoutineRuntimeStateParticipant.runtime_state_id == rid
+                )
+            ).one()
+            if count == 0:
+                db.exec(delete(RoutineRuntimeState).where(RoutineRuntimeState.id == rid))
+
+        db.commit()
+        db.refresh(runtime)
 
         now = datetime.utcnow()
         runtime.active_routine_id = command.routine_id

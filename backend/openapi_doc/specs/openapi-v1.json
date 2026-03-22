@@ -1249,6 +1249,329 @@
         }
       }
     },
+    "/api/routines/{routine_id}/shares": {
+      "post": {
+        "tags": [
+          "routines"
+        ],
+        "summary": "Create Routine Share",
+        "operationId": "routines_shares_create",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "routine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Routine Id"
+            }
+          },
+          {
+            "name": "X-ID-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "X-Id-Token",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoutineShareCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutineShareRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "routines"
+        ],
+        "summary": "List Routine Shares",
+        "operationId": "routines_shares_list",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "routine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Routine Id"
+            }
+          },
+          {
+            "name": "X-ID-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "X-Id-Token",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoutineShareRead"
+                  },
+                  "title": "Response Routines Shares List"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/routines/{routine_id}/shares/{user_id}": {
+      "get": {
+        "tags": [
+          "routines"
+        ],
+        "summary": "Get Routine Share",
+        "operationId": "routines_shares_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "routine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Routine Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "X-ID-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "X-Id-Token",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutineShareRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "routines"
+        ],
+        "summary": "Update Routine Share",
+        "operationId": "routines_shares_update",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "routine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Routine Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "X-ID-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "X-Id-Token",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoutineShareUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutineShareRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "routines"
+        ],
+        "summary": "Delete Routine Share",
+        "operationId": "routines_shares_delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "routine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Routine Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "X-ID-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "X-Id-Token",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/routine-control/start": {
       "post": {
         "tags": [
@@ -1877,6 +2200,15 @@
             "$ref": "#/components/schemas/AccessLevel",
             "nullable": true
           },
+          "start_mode": {
+            "$ref": "#/components/schemas/StartMode",
+            "default": "none"
+          },
+          "notify_mask": {
+            "type": "integer",
+            "title": "Notify Mask",
+            "default": 0
+          },
           "tasks": {
             "title": "Tasks",
             "items": {
@@ -1892,6 +2224,60 @@
           "id"
         ],
         "title": "Routine"
+      },
+      "RoutineShareCreate": {
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "access_level": {
+            "$ref": "#/components/schemas/AccessLevel",
+            "default": "read"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id"
+        ],
+        "title": "RoutineShareCreate"
+      },
+      "RoutineShareRead": {
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "access_level": {
+            "$ref": "#/components/schemas/AccessLevel",
+            "default": "read"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "profile_picture": {
+            "title": "Profile Picture",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "username"
+        ],
+        "title": "RoutineShareRead"
+      },
+      "RoutineShareUpdate": {
+        "properties": {
+          "access_level": {
+            "$ref": "#/components/schemas/AccessLevel",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "title": "RoutineShareUpdate"
       },
       "RoutineStartPayload": {
         "properties": {
@@ -1935,10 +2321,28 @@
             "title": "Description",
             "type": "string",
             "nullable": true
+          },
+          "start_mode": {
+            "$ref": "#/components/schemas/StartMode",
+            "nullable": true
+          },
+          "notify_mask": {
+            "title": "Notify Mask",
+            "type": "integer",
+            "nullable": true
           }
         },
         "type": "object",
         "title": "RoutineUpdate"
+      },
+      "StartMode": {
+        "type": "string",
+        "enum": [
+          "none",
+          "follow_owner",
+          "follow_any"
+        ],
+        "title": "StartMode"
       },
       "TaskCreate": {
         "properties": {

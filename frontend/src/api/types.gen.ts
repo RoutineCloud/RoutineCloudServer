@@ -142,10 +142,52 @@ export type RoutineRead = {
      */
     id: number;
     access_level?: AccessLevel;
+    start_mode?: StartMode;
+    /**
+     * Notify Mask
+     */
+    notify_mask?: number;
     /**
      * Tasks
      */
     tasks?: Array<TaskInRoutineRead> | null;
+};
+
+/**
+ * RoutineShareCreate
+ */
+export type RoutineShareCreate = {
+    /**
+     * User Id
+     */
+    user_id: number;
+    access_level?: AccessLevel;
+};
+
+/**
+ * RoutineShareRead
+ */
+export type RoutineShareRead = {
+    /**
+     * User Id
+     */
+    user_id: number;
+    access_level?: AccessLevel;
+    /**
+     * Username
+     */
+    username: string;
+    /**
+     * Profile Picture
+     */
+    profile_picture?: string | null;
+};
+
+/**
+ * RoutineShareUpdate
+ */
+export type RoutineShareUpdate = {
+    access_level?: AccessLevel;
 };
 
 /**
@@ -184,7 +226,17 @@ export type RoutineUpdate = {
      * Description
      */
     description?: string | null;
+    start_mode?: StartMode;
+    /**
+     * Notify Mask
+     */
+    notify_mask?: number | null;
 };
+
+/**
+ * StartMode
+ */
+export type StartMode = 'none' | 'follow_owner' | 'follow_any';
 
 /**
  * TaskCreate
@@ -1114,6 +1166,199 @@ export type RoutinesStartResponses = {
      */
     202: unknown;
 };
+
+export type RoutinesSharesListData = {
+    body?: never;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}/shares';
+};
+
+export type RoutinesSharesListErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RoutinesSharesListError = RoutinesSharesListErrors[keyof RoutinesSharesListErrors];
+
+export type RoutinesSharesListResponses = {
+    /**
+     * Response Routines Shares List
+     * Successful Response
+     */
+    200: Array<RoutineShareRead>;
+};
+
+export type RoutinesSharesListResponse = RoutinesSharesListResponses[keyof RoutinesSharesListResponses];
+
+export type RoutinesSharesCreateData = {
+    body: RoutineShareCreate;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}/shares';
+};
+
+export type RoutinesSharesCreateErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RoutinesSharesCreateError = RoutinesSharesCreateErrors[keyof RoutinesSharesCreateErrors];
+
+export type RoutinesSharesCreateResponses = {
+    /**
+     * Successful Response
+     */
+    201: RoutineShareRead;
+};
+
+export type RoutinesSharesCreateResponse = RoutinesSharesCreateResponses[keyof RoutinesSharesCreateResponses];
+
+export type RoutinesSharesDeleteData = {
+    body?: never;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+        /**
+         * User Id
+         */
+        user_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}/shares/{user_id}';
+};
+
+export type RoutinesSharesDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RoutinesSharesDeleteError = RoutinesSharesDeleteErrors[keyof RoutinesSharesDeleteErrors];
+
+export type RoutinesSharesDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    204: void;
+};
+
+export type RoutinesSharesDeleteResponse = RoutinesSharesDeleteResponses[keyof RoutinesSharesDeleteResponses];
+
+export type RoutinesSharesGetData = {
+    body?: never;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+        /**
+         * User Id
+         */
+        user_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}/shares/{user_id}';
+};
+
+export type RoutinesSharesGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RoutinesSharesGetError = RoutinesSharesGetErrors[keyof RoutinesSharesGetErrors];
+
+export type RoutinesSharesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineShareRead;
+};
+
+export type RoutinesSharesGetResponse = RoutinesSharesGetResponses[keyof RoutinesSharesGetResponses];
+
+export type RoutinesSharesUpdateData = {
+    body: RoutineShareUpdate;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path: {
+        /**
+         * Routine Id
+         */
+        routine_id: number;
+        /**
+         * User Id
+         */
+        user_id: number;
+    };
+    query?: never;
+    url: '/api/routines/{routine_id}/shares/{user_id}';
+};
+
+export type RoutinesSharesUpdateErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RoutinesSharesUpdateError = RoutinesSharesUpdateErrors[keyof RoutinesSharesUpdateErrors];
+
+export type RoutinesSharesUpdateResponses = {
+    /**
+     * Successful Response
+     */
+    200: RoutineShareRead;
+};
+
+export type RoutinesSharesUpdateResponse = RoutinesSharesUpdateResponses[keyof RoutinesSharesUpdateResponses];
 
 export type StartRoutineByNameApiRoutineControlStartPostData = {
     body: RoutineStartPayload;

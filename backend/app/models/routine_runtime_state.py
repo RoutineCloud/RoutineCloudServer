@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 
 from sqlmodel import Field, Relationship
 
@@ -8,6 +8,7 @@ from app.models.base import BaseModel
 
 if TYPE_CHECKING:
     from app.models.routine import Routine
+    from app.models.user import User
 
 
 class RuntimeStatus(str, Enum):
@@ -17,10 +18,19 @@ class RuntimeStatus(str, Enum):
     FINISHED = "finished"
 
 
+class RoutineRuntimeStateParticipant(BaseModel, table=True):
+    __tablename__ = "routine_runtime_state_participants"
+
+    runtime_state_id: int = Field(foreign_key="routine_runtime_states.id", index=True)
+    user_id: int = Field(foreign_key="users.id", index=True, unique=True)
+
+    runtime_state: "RoutineRuntimeState" = Relationship(back_populates="participants")
+    user: "User" = Relationship()
+
+
 class RoutineRuntimeState(BaseModel, table=True):
     __tablename__ = "routine_runtime_states"
 
-    user_id: int = Field(foreign_key="users.id", index=True, unique=True)
     active_routine_id: Optional[int] = Field(default=None, foreign_key="routines.id")
     status: RuntimeStatus = Field(default=RuntimeStatus.IDLE)
     current_task_position: Optional[int] = None
@@ -30,6 +40,10 @@ class RoutineRuntimeState(BaseModel, table=True):
     pause_duration: int = 0
     active_routine: Optional["Routine"] = Relationship(
         sa_relationship_kwargs={"foreign_keys": "RoutineRuntimeState.active_routine_id"}
+    )
+    participants: List[RoutineRuntimeStateParticipant] = Relationship(
+        back_populates="runtime_state",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
 
     def recalculate(self, now: Optional[datetime] = None) -> bool:

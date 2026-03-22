@@ -6,6 +6,7 @@ import {useTasksStore} from '@/stores/tasks'
 import RoutineTaskList from '@/components/RoutineTaskList.vue'
 import TaskDetailPanel from '@/components/TaskDetailPanel.vue'
 import TaskPickerDialog from '@/components/TaskPickerDialog.vue'
+import RoutineSettings from '@/components/RoutineSettings.vue'
 import {formatSecondsToTime} from '@/utils/time'
 
 const route = useRoute()
@@ -121,6 +122,8 @@ async function saveName() {
               <div v-else class="text-medium-emphasis">Select a task...</div>
             </v-card-text>
           </v-card>
+
+          <RoutineSettings :routine="routine" />
         </v-col>
       </v-row>
 

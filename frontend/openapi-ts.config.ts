@@ -9,7 +9,10 @@ export default defineConfig({
   output: 'src/api',
   plugins: [
     '@hey-api/typescript',
-    { name: '@hey-api/client-axios', runtimeConfigPath: '../hey-api' },
+    {
+      name: '@hey-api/client-axios',
+      runtimeConfigPath: '../hey-api'
+    },
     {
       name: '@hey-api/sdk',
       asClass: true, // default
