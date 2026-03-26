@@ -8,7 +8,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx --fix --ignore-path .gitignore",
-    "openapi-ts": "openapi-ts"
+    "openapi-ts": "openapi-ts",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
@@ -24,6 +27,7 @@
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.94.2",
+    "@playwright/test": "^1.58.2",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/eslint-config-prettier": "^8.0.0",
     "eslint": "^8.49.0",
