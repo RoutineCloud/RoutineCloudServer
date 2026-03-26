@@ -22,13 +22,11 @@ library.add(fas)
 // Create Pinia instance
 const pinia = createPinia()
 
-// Configure API client interceptor
-client.instance.interceptors.request.use(async (config) => {
-  const user = await userManager.getUser()
-  if (user?.access_token) {
-    config.headers.Authorization = `Bearer ${user.access_token}`
+client.setConfig({
+  auth: async () => {
+    const user = await userManager.getUser()
+    return user?.access_token
   }
-  return config
 })
 
 // Create Vuetify instance

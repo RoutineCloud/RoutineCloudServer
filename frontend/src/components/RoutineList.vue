@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {useRoutinesStore} from '@/stores/routines'
+import {useRuntimeStore} from '@/stores/runtime'
 import {RoutineRead} from '@/api'
 import ShareRoutineDialog from '@/components/ShareRoutineDialog.vue'
 
@@ -21,17 +22,17 @@ function select(id: number) {
 
 // Start routine handling
 const routinesStore = useRoutinesStore()
+const runtimeStore = useRuntimeStore()
 const startingId = ref<number | null>(null)
 async function startRoutine(id: number) {
   if (startingId.value !== null) return
   startingId.value = id
   try {
-    await routinesStore.start(id)
+    await runtimeStore.startRoutine(id)
   } catch (e) {
     console.error('Failed to start routine', e)
   } finally {
     startingId.value = null
-    await routinesStore.loadActiveStatus()
   }
 }
 
@@ -71,7 +72,7 @@ function openShare(r: RoutineRead) {
             size="small"
             variant="text"
             :loading="startingId===r.id"
-            :disabled="startingId===r.id"
+            :disabled="startingId===r.id || r.access_level === 'read'"
             @click.stop="startRoutine(r.id)"
             :title="'Start routine'"
           />

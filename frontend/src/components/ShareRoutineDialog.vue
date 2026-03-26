@@ -119,7 +119,7 @@ async function updateAccessLevel(userId: number, level: AccessLevel) {
                 <v-select
                   :model-value="share.access_level"
                   @update:model-value="(val) => updateAccessLevel(share.user_id, val)"
-                  :items="['read', 'write']"
+                  :items="['read', 'start']"
                   density="compact"
                   variant="plain"
                   hide-details

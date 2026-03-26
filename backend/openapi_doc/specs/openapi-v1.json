@@ -638,192 +638,6 @@
         }
       }
     },
-    "/api/routines/active/status": {
-      "get": {
-        "tags": [
-          "routines"
-        ],
-        "summary": "Active Status",
-        "operationId": "routines_active_status",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "X-ID-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "title": "X-Id-Token",
-              "type": "string",
-              "nullable": true
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActiveRoutineStatusRead"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/routines/active/skip": {
-      "post": {
-        "tags": [
-          "routines"
-        ],
-        "summary": "Skip Active Task",
-        "operationId": "routines_active_skip",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "X-ID-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "title": "X-Id-Token",
-              "type": "string",
-              "nullable": true
-            }
-          }
-        ],
-        "responses": {
-          "202": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/routines/active/pause": {
-      "post": {
-        "tags": [
-          "routines"
-        ],
-        "summary": "Pause Active Routine",
-        "operationId": "routines_active_pause",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "X-ID-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "title": "X-Id-Token",
-              "type": "string",
-              "nullable": true
-            }
-          }
-        ],
-        "responses": {
-          "202": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/routines/active/resume": {
-      "post": {
-        "tags": [
-          "routines"
-        ],
-        "summary": "Resume Active Routine",
-        "operationId": "routines_active_resume",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "X-ID-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "title": "X-Id-Token",
-              "type": "string",
-              "nullable": true
-            }
-          }
-        ],
-        "responses": {
-          "202": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/routines/{routine_id}": {
       "get": {
         "tags": [
@@ -1194,61 +1008,6 @@
         }
       }
     },
-    "/api/routines/{routine_id}/start": {
-      "post": {
-        "tags": [
-          "routines"
-        ],
-        "summary": "Start Routine",
-        "operationId": "routines_start",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "routine_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Routine Id"
-            }
-          },
-          {
-            "name": "X-ID-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "title": "X-Id-Token",
-              "type": "string",
-              "nullable": true
-            }
-          }
-        ],
-        "responses": {
-          "202": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/routines/{routine_id}/shares": {
       "post": {
         "tags": [
@@ -1572,13 +1331,109 @@
         }
       }
     },
-    "/api/routine-control/start": {
+    "/api/runtime/active": {
+      "get": {
+        "tags": [
+          "runtime"
+        ],
+        "summary": "Active Runtime",
+        "operationId": "runtime_active",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-ID-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "X-Id-Token",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeActiveRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runtime/sync": {
+      "get": {
+        "tags": [
+          "runtime"
+        ],
+        "summary": "Sync Runtime",
+        "operationId": "runtime_sync",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-ID-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "X-Id-Token",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeSyncRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runtime/start": {
       "post": {
         "tags": [
-          "routine-control"
+          "runtime"
         ],
-        "summary": "Start Routine By Name",
-        "operationId": "start_routine_by_name_api_routine_control_start_post",
+        "summary": "Start Runtime",
+        "operationId": "runtime_start",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1601,17 +1456,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RoutineStartPayload"
+                "$ref": "#/components/schemas/RuntimeCommandRequest"
               }
             }
           }
         },
         "responses": {
-          "202": {
+          "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeCommandAccepted"
+                }
               }
             }
           },
@@ -1628,13 +1485,303 @@
         }
       }
     },
-    "/api/routine-control/stop": {
+    "/api/runtime/pause": {
       "post": {
         "tags": [
-          "routine-control"
+          "runtime"
         ],
-        "summary": "Stop Current Routine",
-        "operationId": "stop_current_routine_api_routine_control_stop_post",
+        "summary": "Pause Runtime",
+        "operationId": "runtime_pause",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-ID-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "X-Id-Token",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuntimeCommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeCommandAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runtime/resume": {
+      "post": {
+        "tags": [
+          "runtime"
+        ],
+        "summary": "Resume Runtime",
+        "operationId": "runtime_resume",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-ID-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "X-Id-Token",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuntimeCommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeCommandAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runtime/skip": {
+      "post": {
+        "tags": [
+          "runtime"
+        ],
+        "summary": "Skip Runtime",
+        "operationId": "runtime_skip",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-ID-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "X-Id-Token",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuntimeCommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeCommandAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runtime/stop": {
+      "post": {
+        "tags": [
+          "runtime"
+        ],
+        "summary": "Stop Runtime",
+        "operationId": "runtime_stop",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-ID-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "X-Id-Token",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuntimeCommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeCommandAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runtime/complete": {
+      "post": {
+        "tags": [
+          "runtime"
+        ],
+        "summary": "Complete Runtime",
+        "operationId": "runtime_complete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-ID-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "X-Id-Token",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuntimeCommandRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeCommandAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runtime/events": {
+      "get": {
+        "tags": [
+          "runtime"
+        ],
+        "summary": "Stream Runtime Events",
+        "operationId": "runtime_events",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1653,12 +1800,10 @@
           }
         ],
         "responses": {
-          "202": {
+          "200": {
             "description": "Successful Response",
             "content": {
-              "application/json": {
-                "schema": {}
-              }
+              "text/event-stream": {}
             }
           },
           "422": {
@@ -2012,55 +2157,10 @@
         "type": "string",
         "enum": [
           "owner",
-          "write",
+          "start",
           "read"
         ],
         "title": "AccessLevel"
-      },
-      "ActiveRoutineStatusRead": {
-        "properties": {
-          "active_routine_id": {
-            "title": "Active Routine Id",
-            "type": "integer",
-            "nullable": true
-          },
-          "routine_name": {
-            "title": "Routine Name",
-            "type": "string",
-            "nullable": true
-          },
-          "status": {
-            "type": "string",
-            "title": "Status"
-          },
-          "current_task_position": {
-            "title": "Current Task Position",
-            "type": "integer",
-            "nullable": true
-          },
-          "started_at": {
-            "title": "Started At",
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "paused_at": {
-            "title": "Paused At",
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "pause_duration": {
-            "type": "integer",
-            "title": "Pause Duration",
-            "default": 0
-          }
-        },
-        "type": "object",
-        "required": [
-          "status"
-        ],
-        "title": "ActiveRoutineStatusRead"
       },
       "DeviceRead": {
         "properties": {
@@ -2279,19 +2379,6 @@
         "type": "object",
         "title": "RoutineShareUpdate"
       },
-      "RoutineStartPayload": {
-        "properties": {
-          "name": {
-            "type": "string",
-            "title": "Name"
-          }
-        },
-        "type": "object",
-        "required": [
-          "name"
-        ],
-        "title": "RoutineStartPayload"
-      },
       "RoutineTaskAdd": {
         "properties": {
           "task_id": {
@@ -2334,6 +2421,292 @@
         },
         "type": "object",
         "title": "RoutineUpdate"
+      },
+      "RuntimeActiveRead": {
+        "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time"
+          },
+          "runtime": {
+            "$ref": "#/components/schemas/RuntimeStateRead"
+          },
+          "routine": {
+            "$ref": "#/components/schemas/RuntimeRoutineRead",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "server_time",
+          "runtime"
+        ],
+        "title": "RuntimeActiveRead"
+      },
+      "RuntimeActorRead": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "id"
+        ],
+        "title": "RuntimeActorRead"
+      },
+      "RuntimeCommandAccepted": {
+        "properties": {
+          "command_id": {
+            "type": "string",
+            "title": "Command Id"
+          },
+          "accepted": {
+            "type": "boolean",
+            "title": "Accepted",
+            "default": true
+          },
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time"
+          },
+          "sync": {
+            "$ref": "#/components/schemas/RuntimeSyncRead"
+          },
+          "active": {
+            "$ref": "#/components/schemas/RuntimeActiveRead",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "command_id",
+          "server_time",
+          "sync"
+        ],
+        "title": "RuntimeCommandAccepted"
+      },
+      "RuntimeCommandRequest": {
+        "properties": {
+          "command_id": {
+            "type": "string",
+            "title": "Command Id"
+          },
+          "type": {
+            "$ref": "#/components/schemas/RuntimeCommandType"
+          },
+          "routine_id": {
+            "title": "Routine Id",
+            "type": "integer",
+            "nullable": true
+          },
+          "requested_at": {
+            "title": "Requested At",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "source_device_id": {
+            "title": "Source Device Id",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "command_id",
+          "type"
+        ],
+        "title": "RuntimeCommandRequest"
+      },
+      "RuntimeCommandType": {
+        "type": "string",
+        "enum": [
+          "routine.start",
+          "routine.pause",
+          "routine.resume",
+          "routine.skip",
+          "routine.stop",
+          "routine.complete"
+        ],
+        "title": "RuntimeCommandType"
+      },
+      "RuntimeEventEnvelope": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "event_type": {
+            "$ref": "#/components/schemas/RuntimeEventType"
+          },
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/RuntimeActorRead",
+            "nullable": true
+          },
+          "sync": {
+            "$ref": "#/components/schemas/RuntimeSyncRead",
+            "nullable": true
+          },
+          "active": {
+            "$ref": "#/components/schemas/RuntimeActiveRead",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "event_type",
+          "server_time"
+        ],
+        "title": "RuntimeEventEnvelope"
+      },
+      "RuntimeEventType": {
+        "type": "string",
+        "enum": [
+          "runtime.started",
+          "runtime.paused",
+          "runtime.resumed",
+          "runtime.skipped",
+          "runtime.stopped",
+          "runtime.completed"
+        ],
+        "title": "RuntimeEventType"
+      },
+      "RuntimeRoutineRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string",
+            "nullable": true
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskInRoutineRead"
+            },
+            "type": "array",
+            "title": "Tasks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "tasks"
+        ],
+        "title": "RuntimeRoutineRead"
+      },
+      "RuntimeStateRead": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/RuntimeStatus"
+          },
+          "routine_id": {
+            "title": "Routine Id",
+            "type": "integer",
+            "nullable": true
+          },
+          "participant_user_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Participant User Ids"
+          },
+          "current_task_id": {
+            "title": "Current Task Id",
+            "type": "integer",
+            "nullable": true
+          },
+          "current_task_position": {
+            "title": "Current Task Position",
+            "type": "integer",
+            "nullable": true
+          },
+          "task_started_at": {
+            "title": "Task Started At",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "routine_started_at": {
+            "title": "Routine Started At",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "paused_at": {
+            "title": "Paused At",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "pause_duration": {
+            "type": "integer",
+            "title": "Pause Duration",
+            "default": 0
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "RuntimeStateRead"
+      },
+      "RuntimeStatus": {
+        "type": "string",
+        "enum": [
+          "idle",
+          "running",
+          "paused",
+          "finished"
+        ],
+        "title": "RuntimeStatus"
+      },
+      "RuntimeSyncRead": {
+        "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time"
+          },
+          "runtime": {
+            "$ref": "#/components/schemas/RuntimeStateRead"
+          }
+        },
+        "type": "object",
+        "required": [
+          "server_time",
+          "runtime"
+        ],
+        "title": "RuntimeSyncRead"
       },
       "StartMode": {
         "type": "string",

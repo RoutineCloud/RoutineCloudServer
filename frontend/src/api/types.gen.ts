@@ -3,41 +3,7 @@
 /**
  * AccessLevel
  */
-export type AccessLevel = 'owner' | 'write' | 'read';
-
-/**
- * ActiveRoutineStatusRead
- */
-export type ActiveRoutineStatusRead = {
-    /**
-     * Active Routine Id
-     */
-    active_routine_id?: number | null;
-    /**
-     * Routine Name
-     */
-    routine_name?: string | null;
-    /**
-     * Status
-     */
-    status: string;
-    /**
-     * Current Task Position
-     */
-    current_task_position?: number | null;
-    /**
-     * Started At
-     */
-    started_at?: string | null;
-    /**
-     * Paused At
-     */
-    paused_at?: string | null;
-    /**
-     * Pause Duration
-     */
-    pause_duration?: number;
-};
+export type AccessLevel = 'owner' | 'start' | 'read';
 
 /**
  * Device
@@ -191,16 +157,6 @@ export type RoutineShareUpdate = {
 };
 
 /**
- * RoutineStartPayload
- */
-export type RoutineStartPayload = {
-    /**
-     * Name
-     */
-    name: string;
-};
-
-/**
  * RoutineTaskAdd
  */
 export type RoutineTaskAdd = {
@@ -231,6 +187,184 @@ export type RoutineUpdate = {
      * Notify Mask
      */
     notify_mask?: number | null;
+};
+
+/**
+ * RuntimeActiveRead
+ */
+export type RuntimeActiveRead = {
+    /**
+     * Server Time
+     */
+    server_time: string;
+    runtime: RuntimeStateRead;
+    routine?: RuntimeRoutineRead;
+};
+
+/**
+ * RuntimeActorRead
+ */
+export type RuntimeActorRead = {
+    /**
+     * Type
+     */
+    type: string;
+    /**
+     * Id
+     */
+    id: string;
+};
+
+/**
+ * RuntimeCommandAccepted
+ */
+export type RuntimeCommandAccepted = {
+    /**
+     * Command Id
+     */
+    command_id: string;
+    /**
+     * Accepted
+     */
+    accepted?: boolean;
+    /**
+     * Server Time
+     */
+    server_time: string;
+    sync: RuntimeSyncRead;
+    active?: RuntimeActiveRead;
+};
+
+/**
+ * RuntimeCommandRequest
+ */
+export type RuntimeCommandRequest = {
+    /**
+     * Command Id
+     */
+    command_id: string;
+    type: RuntimeCommandType;
+    /**
+     * Routine Id
+     */
+    routine_id?: number | null;
+    /**
+     * Requested At
+     */
+    requested_at?: string | null;
+    /**
+     * Source Device Id
+     */
+    source_device_id?: string | null;
+};
+
+/**
+ * RuntimeCommandType
+ */
+export type RuntimeCommandType = 'routine.start' | 'routine.pause' | 'routine.resume' | 'routine.skip' | 'routine.stop' | 'routine.complete';
+
+/**
+ * RuntimeEventEnvelope
+ */
+export type RuntimeEventEnvelope = {
+    /**
+     * Event Id
+     */
+    event_id: string;
+    event_type: RuntimeEventType;
+    /**
+     * Server Time
+     */
+    server_time: string;
+    actor?: RuntimeActorRead;
+    sync?: RuntimeSyncRead;
+    active?: RuntimeActiveRead;
+};
+
+/**
+ * RuntimeEventType
+ */
+export type RuntimeEventType = 'runtime.started' | 'runtime.paused' | 'runtime.resumed' | 'runtime.skipped' | 'runtime.stopped' | 'runtime.completed';
+
+/**
+ * RuntimeRoutineRead
+ */
+export type RuntimeRoutineRead = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Description
+     */
+    description?: string | null;
+    /**
+     * Tasks
+     */
+    tasks: Array<TaskInRoutineRead>;
+};
+
+/**
+ * RuntimeStateRead
+ */
+export type RuntimeStateRead = {
+    status: RuntimeStatus;
+    /**
+     * Routine Id
+     */
+    routine_id?: number | null;
+    /**
+     * Participant User Ids
+     */
+    participant_user_ids?: Array<number>;
+    /**
+     * Current Task Id
+     */
+    current_task_id?: number | null;
+    /**
+     * Current Task Position
+     */
+    current_task_position?: number | null;
+    /**
+     * Task Started At
+     */
+    task_started_at?: string | null;
+    /**
+     * Routine Started At
+     */
+    routine_started_at?: string | null;
+    /**
+     * Paused At
+     */
+    paused_at?: string | null;
+    /**
+     * Pause Duration
+     */
+    pause_duration?: number;
+    /**
+     * Updated At
+     */
+    updated_at?: string | null;
+};
+
+/**
+ * RuntimeStatus
+ */
+export type RuntimeStatus = 'idle' | 'running' | 'paused' | 'finished';
+
+/**
+ * RuntimeSyncRead
+ */
+export type RuntimeSyncRead = {
+    /**
+     * Server Time
+     */
+    server_time: string;
+    runtime: RuntimeStateRead;
 };
 
 /**
@@ -792,124 +926,6 @@ export type RoutinesCreateResponses = {
 
 export type RoutinesCreateResponse = RoutinesCreateResponses[keyof RoutinesCreateResponses];
 
-export type RoutinesActiveStatusData = {
-    body?: never;
-    headers?: {
-        /**
-         * X-Id-Token
-         */
-        'X-ID-Token'?: string | null;
-    };
-    path?: never;
-    query?: never;
-    url: '/api/routines/active/status';
-};
-
-export type RoutinesActiveStatusErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type RoutinesActiveStatusError = RoutinesActiveStatusErrors[keyof RoutinesActiveStatusErrors];
-
-export type RoutinesActiveStatusResponses = {
-    /**
-     * Successful Response
-     */
-    200: ActiveRoutineStatusRead;
-};
-
-export type RoutinesActiveStatusResponse = RoutinesActiveStatusResponses[keyof RoutinesActiveStatusResponses];
-
-export type RoutinesActiveSkipData = {
-    body?: never;
-    headers?: {
-        /**
-         * X-Id-Token
-         */
-        'X-ID-Token'?: string | null;
-    };
-    path?: never;
-    query?: never;
-    url: '/api/routines/active/skip';
-};
-
-export type RoutinesActiveSkipErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type RoutinesActiveSkipError = RoutinesActiveSkipErrors[keyof RoutinesActiveSkipErrors];
-
-export type RoutinesActiveSkipResponses = {
-    /**
-     * Successful Response
-     */
-    202: unknown;
-};
-
-export type RoutinesActivePauseData = {
-    body?: never;
-    headers?: {
-        /**
-         * X-Id-Token
-         */
-        'X-ID-Token'?: string | null;
-    };
-    path?: never;
-    query?: never;
-    url: '/api/routines/active/pause';
-};
-
-export type RoutinesActivePauseErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type RoutinesActivePauseError = RoutinesActivePauseErrors[keyof RoutinesActivePauseErrors];
-
-export type RoutinesActivePauseResponses = {
-    /**
-     * Successful Response
-     */
-    202: unknown;
-};
-
-export type RoutinesActiveResumeData = {
-    body?: never;
-    headers?: {
-        /**
-         * X-Id-Token
-         */
-        'X-ID-Token'?: string | null;
-    };
-    path?: never;
-    query?: never;
-    url: '/api/routines/active/resume';
-};
-
-export type RoutinesActiveResumeErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type RoutinesActiveResumeError = RoutinesActiveResumeErrors[keyof RoutinesActiveResumeErrors];
-
-export type RoutinesActiveResumeResponses = {
-    /**
-     * Successful Response
-     */
-    202: unknown;
-};
-
 export type RoutinesDeleteData = {
     body?: never;
     headers?: {
@@ -1133,40 +1149,6 @@ export type RoutinesTasksRemoveResponses = {
 
 export type RoutinesTasksRemoveResponse = RoutinesTasksRemoveResponses[keyof RoutinesTasksRemoveResponses];
 
-export type RoutinesStartData = {
-    body?: never;
-    headers?: {
-        /**
-         * X-Id-Token
-         */
-        'X-ID-Token'?: string | null;
-    };
-    path: {
-        /**
-         * Routine Id
-         */
-        routine_id: number;
-    };
-    query?: never;
-    url: '/api/routines/{routine_id}/start';
-};
-
-export type RoutinesStartErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type RoutinesStartError = RoutinesStartErrors[keyof RoutinesStartErrors];
-
-export type RoutinesStartResponses = {
-    /**
-     * Successful Response
-     */
-    202: unknown;
-};
-
 export type RoutinesSharesListData = {
     body?: never;
     headers?: {
@@ -1360,36 +1342,7 @@ export type RoutinesSharesUpdateResponses = {
 
 export type RoutinesSharesUpdateResponse = RoutinesSharesUpdateResponses[keyof RoutinesSharesUpdateResponses];
 
-export type StartRoutineByNameApiRoutineControlStartPostData = {
-    body: RoutineStartPayload;
-    headers?: {
-        /**
-         * X-Id-Token
-         */
-        'X-ID-Token'?: string | null;
-    };
-    path?: never;
-    query?: never;
-    url: '/api/routine-control/start';
-};
-
-export type StartRoutineByNameApiRoutineControlStartPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type StartRoutineByNameApiRoutineControlStartPostError = StartRoutineByNameApiRoutineControlStartPostErrors[keyof StartRoutineByNameApiRoutineControlStartPostErrors];
-
-export type StartRoutineByNameApiRoutineControlStartPostResponses = {
-    /**
-     * Successful Response
-     */
-    202: unknown;
-};
-
-export type StopCurrentRoutineApiRoutineControlStopPostData = {
+export type RuntimeActiveData = {
     body?: never;
     headers?: {
         /**
@@ -1399,23 +1352,271 @@ export type StopCurrentRoutineApiRoutineControlStopPostData = {
     };
     path?: never;
     query?: never;
-    url: '/api/routine-control/stop';
+    url: '/api/runtime/active';
 };
 
-export type StopCurrentRoutineApiRoutineControlStopPostErrors = {
+export type RuntimeActiveErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type StopCurrentRoutineApiRoutineControlStopPostError = StopCurrentRoutineApiRoutineControlStopPostErrors[keyof StopCurrentRoutineApiRoutineControlStopPostErrors];
+export type RuntimeActiveError = RuntimeActiveErrors[keyof RuntimeActiveErrors];
 
-export type StopCurrentRoutineApiRoutineControlStopPostResponses = {
+export type RuntimeActiveResponses = {
     /**
      * Successful Response
      */
-    202: unknown;
+    200: RuntimeActiveRead;
+};
+
+export type RuntimeActiveResponse = RuntimeActiveResponses[keyof RuntimeActiveResponses];
+
+export type RuntimeSyncData = {
+    body?: never;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/runtime/sync';
+};
+
+export type RuntimeSyncErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RuntimeSyncError = RuntimeSyncErrors[keyof RuntimeSyncErrors];
+
+export type RuntimeSyncResponses = {
+    /**
+     * Successful Response
+     */
+    200: RuntimeSyncRead;
+};
+
+export type RuntimeSyncResponse = RuntimeSyncResponses[keyof RuntimeSyncResponses];
+
+export type RuntimeStartData = {
+    body: RuntimeCommandRequest;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/runtime/start';
+};
+
+export type RuntimeStartErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RuntimeStartError = RuntimeStartErrors[keyof RuntimeStartErrors];
+
+export type RuntimeStartResponses = {
+    /**
+     * Successful Response
+     */
+    200: RuntimeCommandAccepted;
+};
+
+export type RuntimeStartResponse = RuntimeStartResponses[keyof RuntimeStartResponses];
+
+export type RuntimePauseData = {
+    body: RuntimeCommandRequest;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/runtime/pause';
+};
+
+export type RuntimePauseErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RuntimePauseError = RuntimePauseErrors[keyof RuntimePauseErrors];
+
+export type RuntimePauseResponses = {
+    /**
+     * Successful Response
+     */
+    200: RuntimeCommandAccepted;
+};
+
+export type RuntimePauseResponse = RuntimePauseResponses[keyof RuntimePauseResponses];
+
+export type RuntimeResumeData = {
+    body: RuntimeCommandRequest;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/runtime/resume';
+};
+
+export type RuntimeResumeErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RuntimeResumeError = RuntimeResumeErrors[keyof RuntimeResumeErrors];
+
+export type RuntimeResumeResponses = {
+    /**
+     * Successful Response
+     */
+    200: RuntimeCommandAccepted;
+};
+
+export type RuntimeResumeResponse = RuntimeResumeResponses[keyof RuntimeResumeResponses];
+
+export type RuntimeSkipData = {
+    body: RuntimeCommandRequest;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/runtime/skip';
+};
+
+export type RuntimeSkipErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RuntimeSkipError = RuntimeSkipErrors[keyof RuntimeSkipErrors];
+
+export type RuntimeSkipResponses = {
+    /**
+     * Successful Response
+     */
+    200: RuntimeCommandAccepted;
+};
+
+export type RuntimeSkipResponse = RuntimeSkipResponses[keyof RuntimeSkipResponses];
+
+export type RuntimeStopData = {
+    body: RuntimeCommandRequest;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/runtime/stop';
+};
+
+export type RuntimeStopErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RuntimeStopError = RuntimeStopErrors[keyof RuntimeStopErrors];
+
+export type RuntimeStopResponses = {
+    /**
+     * Successful Response
+     */
+    200: RuntimeCommandAccepted;
+};
+
+export type RuntimeStopResponse = RuntimeStopResponses[keyof RuntimeStopResponses];
+
+export type RuntimeCompleteData = {
+    body: RuntimeCommandRequest;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/runtime/complete';
+};
+
+export type RuntimeCompleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RuntimeCompleteError = RuntimeCompleteErrors[keyof RuntimeCompleteErrors];
+
+export type RuntimeCompleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: RuntimeCommandAccepted;
+};
+
+export type RuntimeCompleteResponse = RuntimeCompleteResponses[keyof RuntimeCompleteResponses];
+
+export type RuntimeEventsData = {
+    body?: never;
+    headers?: {
+        /**
+         * X-Id-Token
+         */
+        'X-ID-Token'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/runtime/events';
+};
+
+export type RuntimeEventsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RuntimeEventsError = RuntimeEventsErrors[keyof RuntimeEventsErrors];
+
+export type RuntimeEventsResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
 };
 
 export type FriendsListData = {

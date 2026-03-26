@@ -18,7 +18,7 @@ class StartMode(str, Enum):
 
 class AccessLevel(str, Enum):
     OWNER = "owner"
-    WRITE = "write"
+    START = "start"
     READ = "read"
 
 
