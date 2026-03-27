@@ -6,6 +6,7 @@ import {useTasksStore} from '@/stores/tasks'
 import RoutineTaskList from '@/components/RoutineTaskList.vue'
 import TaskDetailPanel from '@/components/TaskDetailPanel.vue'
 import TaskPickerDialog from '@/components/TaskPickerDialog.vue'
+import RoutineSettings from '@/components/RoutineSettings.vue'
 import {formatSecondsToTime} from '@/utils/time'
 
 const route = useRoute()
@@ -15,7 +16,7 @@ const tasksStore = useTasksStore()
 const routineId = computed(() => Number(route.params.id))
 const routine = computed(() => routinesStore.byId(routineId.value).value)
 
-const selectedItemId = ref<number | undefined>(undefined)
+const selectedItemPosition = ref<number | undefined>(undefined)
 const showPicker = ref(false)
 
 // local editable name
@@ -28,7 +29,7 @@ onMounted(async () => {
     editName.value = routine.value.name ?? ''
   }
   if (routine.value && routine.value.tasks.length > 0) {
-    selectedItemId.value = routine.value.tasks[0].id
+    selectedItemPosition.value = routine.value.tasks[0].position
   }
 })
 
@@ -36,12 +37,12 @@ watch(routine, (r) => {
   if (r) {
     editName.value = r.name ?? ''
   }
-  if (r && r.tasks.length > 0 && !selectedItemId.value) {
-    selectedItemId.value = r.tasks[0].id
+  if (r && r.tasks.length > 0 && !selectedItemPosition.value) {
+    selectedItemPosition.value = r.tasks[0].position
   }
 })
 
-const selectedItem = computed(() => routine.value?.tasks.find(i => i.id === selectedItemId.value))
+const selectedItem = computed(() => routine.value?.tasks.find(i => i.position === selectedItemPosition.value))
 const selectedTask = computed(() => selectedItem.value ? tasksStore.byId(selectedItem.value.id).value : undefined)
 const totalDurationSeconds = computed(() => routinesStore.totalMinutes(routineId.value).value)
 
@@ -52,24 +53,35 @@ async function onPickTask(taskId: number) {
   if (!routine.value) return
   const r = await routinesStore.addItem(routineId.value, {task_id: taskId})
   const added = r.tasks[r.tasks.length - 1]
-  selectedItemId.value = added.id
+  selectedItemPosition.value = added.position
 }
 
 
-async function onRemoveItem(id: number) {
-  await routinesStore.removeItem(routineId.value, id)
-  if (selectedItemId.value === id) selectedItemId.value = routine.value?.tasks[0]?.id
+async function onRemoveItem(position: number) {
+  await routinesStore.removeItem(routineId.value, position)
+  if (selectedItemPosition.value === position) {
+    selectedItemPosition.value = routine.value?.tasks[0]?.position
+  }
 }
 
-async function onDuplicateItem(id: number) {
-  const r = await routinesStore.duplicateItem(routineId.value, id)
-  const idx = r.tasks.findIndex(i => i.id === id)
+async function onDuplicateItem(position: number) {
+  const r = await routinesStore.duplicateItem(routineId.value, position)
+  const idx = r.tasks.findIndex(i => i.position === position)
   const next = r.tasks[idx+1]
-  if (next) selectedItemId.value = next.id
+  if (next) selectedItemPosition.value = next.position
 }
 
-async function onMove(id: number, dir: 'up'|'down') {
-  await routinesStore.moveItem(routineId.value, id, dir as any)
+async function onMove(position: number, dir: 'up'|'down') {
+  const nextPosition = dir === 'up' ? position - 1 : position + 1
+  await routinesStore.moveItem(routineId.value, position, dir as any)
+  if (
+    selectedItemPosition.value === position &&
+    routine.value &&
+    nextPosition >= 1 &&
+    nextPosition <= routine.value.tasks.length
+  ) {
+    selectedItemPosition.value = nextPosition
+  }
 }
 
 async function saveName() {
@@ -102,7 +114,7 @@ async function saveName() {
             <v-card-text>
               <RoutineTaskList
                 :tasks="routine.tasks"
-                v-model="selectedItemId"
+                v-model="selectedItemPosition"
                 @add="onAddTask"
                 @remove="onRemoveItem"
                 @duplicate="onDuplicateItem"
@@ -121,6 +133,8 @@ async function saveName() {
               <div v-else class="text-medium-emphasis">Select a task...</div>
             </v-card-text>
           </v-card>
+
+          <RoutineSettings :routine="routine" />
         </v-col>
       </v-row>
 

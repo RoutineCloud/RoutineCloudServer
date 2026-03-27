@@ -1,11 +1,11 @@
 import {defineStore} from 'pinia'
 import {computed, ref} from 'vue'
 import {
-  ActiveRoutineStatusRead,
-  RoutineControl,
+  AccessLevel,
   RoutineCreate,
   RoutineRead,
   Routines,
+  RoutineShareRead,
   RoutineTaskAdd,
   RoutineUpdate,
   TaskInRoutineRead
@@ -16,12 +16,10 @@ export const useRoutinesStore = defineStore('routines', () => {
   const routines = ref<RoutineRead[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
-  const activeStatus = ref<ActiveRoutineStatusRead | null>(null)
+  const shares = ref<Record<number, RoutineShareRead[]>>({})
 
   // Getters
   const all = computed(() => routines.value)
-  const hasActiveRoutine = computed(() => !!activeStatus.value?.active_routine_id)
-  const isActivePaused = computed(() => (activeStatus.value?.status ?? '').toLowerCase() === 'paused')
   const byId = (id: number) => computed(() => routines.value.find(r => r.id === id))
   const totalMinutes = (id: number) => computed(() => {
     const r = routines.value.find(r => r.id === id)
@@ -93,62 +91,69 @@ export const useRoutinesStore = defineStore('routines', () => {
     return routines.value.find(r => r.id === routineId)!
   }
 
-  async function moveItem(routineId: number, itemId: number, direction: 'up' | 'down') {
-    // Load current tasks
+  async function moveItem(routineId: number, position: number, direction: 'up' | 'down') {
     const { data: tasks } = await Routines.routinesTasksList({ path: { routine_id: routineId } })
-    const currentIndex = tasks.findIndex(t => t.id === itemId)
-    if (currentIndex === -1) return routines.value.find(r => r.id === routineId)!
+    const current = tasks.find(t => t.position === position)
+    if (!current) return routines.value.find(r => r.id === routineId)!
 
-    const currentPos = tasks[currentIndex].position
-    const newPos = direction === 'up' ? currentPos - 1 : currentPos + 1
+    const newPos = direction === 'up' ? position - 1 : position + 1
     if (newPos < 1 || newPos > tasks.length) return routines.value.find(r => r.id === routineId)!
 
-    // Remove then re-add at new position
-    await Routines.routinesTasksRemove({ path: { routine_id: routineId, position: currentPos } })
-    const taskId = itemId
-    const { data } = await Routines.routinesTasksAdd({ path: { routine_id: routineId }, body: { task_id: taskId, position: newPos } })
+    await Routines.routinesTasksRemove({ path: { routine_id: routineId, position } })
+    const { data } = await Routines.routinesTasksAdd({
+      path: { routine_id: routineId },
+      body: { task_id: current.id, position: newPos },
+    })
     setRoutineTasks(routineId, data)
     return routines.value.find(r => r.id === routineId)!
   }
 
-  async function duplicateItem(routineId: number, itemId: number) {
-    // Insert a duplicate right after the current position
+  async function duplicateItem(routineId: number, position: number) {
     const { data: tasks } = await Routines.routinesTasksList({ path: { routine_id: routineId } })
-    const current = tasks.find(t => t.id === itemId)
+    const current = tasks.find(t => t.position === position)
     if (!current) return routines.value.find(r => r.id === routineId)!
-    const { data } = await Routines.routinesTasksAdd({ path: { routine_id: routineId }, body: { task_id: itemId, position: current.position + 1 } })
+    const { data } = await Routines.routinesTasksAdd({
+      path: { routine_id: routineId },
+      body: { task_id: current.id, position: current.position + 1 },
+    })
     setRoutineTasks(routineId, data)
     return routines.value.find(r => r.id === routineId)!
   }
 
-  async function start(id: number) {
-    await Routines.routinesStart({ path: { routine_id: id } })
-  }
-
-  async function loadActiveStatus() {
-    const { data } = await Routines.routinesActiveStatus()
-    activeStatus.value = data
+  // Sharing
+  async function loadShares(routineId: number) {
+    const { data } = await Routines.routinesSharesList({ path: { routine_id: routineId } })
+    shares.value[routineId] = data
     return data
   }
 
-  async function pauseActive() {
-    await Routines.routinesActivePause()
-    await loadActiveStatus()
+  async function shareRoutine(routineId: number, userId: number, accessLevel: AccessLevel = 'read') {
+    const { data } = await Routines.routinesSharesCreate({
+      path: { routine_id: routineId },
+      body: { user_id: userId, access_level: accessLevel }
+    })
+    if (!shares.value[routineId]) shares.value[routineId] = []
+    shares.value[routineId].push(data)
+    return data
   }
 
-  async function resumeActive() {
-    await Routines.routinesActiveResume()
-    await loadActiveStatus()
+  async function updateShare(routineId: number, userId: number, accessLevel: AccessLevel) {
+    const { data } = await Routines.routinesSharesUpdate({
+      path: { routine_id: routineId, user_id: userId },
+      body: { access_level: accessLevel }
+    })
+    const idx = shares.value[routineId]?.findIndex(s => s.user_id === userId)
+    if (idx !== undefined && idx !== -1) {
+      shares.value[routineId][idx] = data
+    }
+    return data
   }
 
-  async function stopActive() {
-    await RoutineControl.stopCurrentRoutineApiRoutineControlStopPost()
-    await loadActiveStatus()
-  }
-
-  async function skipActive() {
-    await Routines.routinesActiveSkip()
-    await loadActiveStatus()
+  async function unshareRoutine(routineId: number, userId: number) {
+    await Routines.routinesSharesDelete({ path: { routine_id: routineId, user_id: userId } })
+    if (shares.value[routineId]) {
+      shares.value[routineId] = shares.value[routineId].filter(s => s.user_id !== userId)
+    }
   }
 
   return {
@@ -156,12 +161,10 @@ export const useRoutinesStore = defineStore('routines', () => {
     routines,
     loading,
     error,
-    activeStatus,
+    shares,
 
     // Getters
     all,
-    hasActiveRoutine,
-    isActivePaused,
     byId,
     totalMinutes,
 
@@ -175,11 +178,9 @@ export const useRoutinesStore = defineStore('routines', () => {
     removeItem,
     moveItem,
     duplicateItem,
-    start,
-    loadActiveStatus,
-    pauseActive,
-    resumeActive,
-    stopActive,
-    skipActive,
+    loadShares,
+    shareRoutine,
+    updateShare,
+    unshareRoutine
   }
 })

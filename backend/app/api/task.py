@@ -6,6 +6,7 @@ from sqlmodel import Session, select
 from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models.routine import Routine
+from app.models.routine_access import RoutineAccess, AccessLevel
 from app.models.routine_task import RoutineTask
 from app.models.task import Task
 from app.models.user import User
@@ -102,7 +103,12 @@ async def delete_task(
     other_ref = db.exec(
         select(RoutineTask)
         .join(Routine, Routine.id == RoutineTask.routine_id)
-        .where(RoutineTask.task_id == task_id, Routine.user_id != current_user.id)
+        .join(RoutineAccess, RoutineAccess.routine_id == Routine.id)
+        .where(
+            RoutineTask.task_id == task_id,
+            RoutineAccess.access_level == AccessLevel.OWNER,
+            RoutineAccess.user_id != current_user.id,
+        )
     ).first()
     if other_ref:
         raise HTTPException(status_code=403, detail="Task is used by another user's routine and cannot be deleted")

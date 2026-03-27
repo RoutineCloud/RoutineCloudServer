@@ -26,6 +26,11 @@ version = sdkVersion
 
 apply plugin: 'maven-publish'
 
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
 publishing {
     publications {
         create("github", MavenPublication) {
@@ -74,6 +79,11 @@ group = sdkGroupId
 version = sdkVersion
 
 apply(plugin = "maven-publish")
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
 
 publishing {
     publications {

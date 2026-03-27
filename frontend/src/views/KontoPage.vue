@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 import ChangePassword from '@/components/ChangePassword.vue'
-import DevicesPanel from '@/components/DevicesPanel.vue'
-import {useUserStore} from '@/stores/index.js'
+import ProfilePanel from '@/components/konto/ProfilePanel.vue'
+import FriendsPanel from '@/components/konto/FriendsPanel.vue'
+import DevicesPanel from '@/components/konto/DevicesPanel.vue'
 
-const userStore = useUserStore()
 const activeTab = ref('profile')
 
 const menuItems = [
   { id: 'profile', title: 'Profile', icon: 'mdi-account' },
+  { id: 'friends', title: 'Friends', icon: 'mdi-account-group' },
   { id: 'devices', title: 'Devices', icon: 'mdi-chip' },
   { id: 'password', title: 'Change Password', icon: 'mdi-lock-reset' }
 ]
@@ -40,23 +41,11 @@ const menuItems = [
       <v-col cols="12" md="9">
         <v-card variant="flat" border class="pa-6">
           <div v-if="activeTab === 'profile'">
-            <div class="text-h6 mb-4">User Profile</div>
-            <div class="mb-4">
-              <div class="text-caption text-grey">Username</div>
-              <div class="text-body-1">{{ userStore.user?.username }}</div>
-            </div>
-            <div class="mb-4">
-              <div class="text-caption text-grey">Email</div>
-              <div class="text-body-1">{{ userStore.user?.email }}</div>
-            </div>
-            <div class="mb-4">
-              <div class="text-caption text-grey">User ID</div>
-              <div class="text-body-1">{{ userStore.user?.id }}</div>
-            </div>
-            <div class="mb-4">
-              <div class="text-caption text-grey">Admin Status</div>
-              <div class="text-body-1">{{ userStore.user?.is_superuser ? 'Administrator' : 'Regular User' }}</div>
-            </div>
+            <ProfilePanel />
+          </div>
+
+          <div v-if="activeTab === 'friends'">
+            <FriendsPanel />
           </div>
 
           <div v-if="activeTab === 'devices'">

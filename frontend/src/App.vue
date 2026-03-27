@@ -1,3 +1,35 @@
+<script setup lang="ts">
+import { watch } from 'vue'
+import Menu from '@/views/Menu.vue'
+import { useRuntimeStore, useUserStore } from '@/stores'
+import { client } from '@/api/client.gen'
+
+const userStore = useUserStore()
+const runtimeStore = useRuntimeStore()
+
+client.instance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      userStore.logout()
+    }
+    return Promise.reject(error)
+  },
+)
+
+watch(
+  () => userStore.isAuthenticated,
+  (isAuthenticated) => {
+    if (isAuthenticated) {
+      void runtimeStore.initializeRealtime()
+    } else {
+      runtimeStore.teardownRealtime()
+    }
+  },
+  { immediate: true },
+)
+</script>
+
 <template>
   <v-app>
     <Menu />
@@ -13,33 +45,3 @@
     </v-footer>
   </v-app>
 </template>
-
-
-<script>
-import Menu from '@/views/Menu.vue'
-import {useUserStore} from "@/stores/index.js";
-import {client} from "@/api/client.gen.js";
-
-
-// Global 401 handler -> logout
-client.instance.interceptors.response.use(
-  r => {
-    return r
-  },
-  err => {
-    if (err.response?.status === 401) {
-      const userStore = useUserStore()
-      userStore.logout()
-    }
-    return Promise.reject(err)
-  }
-)
-
-export default {
-  name: 'App',
-  components: {Menu},
-  data: () => ({
-    //
-  }),
-}
-</script>

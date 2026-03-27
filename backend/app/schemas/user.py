@@ -11,11 +11,13 @@ class UserBase(SQLModel):
     is_active: Optional[bool] = True
     is_superuser: Optional[bool] = False
     oidc_sub: str
+    friend_code: Optional[str] = None
+    profile_picture: Optional[str] = None
 
 
-class UserUpdate(UserBase):
+class UserUpdate(SQLModel):
     """Schema for updating a user."""
-    pass
+    profile_picture: Optional[str] = None
 
 
 class UserRead(UserBase):
