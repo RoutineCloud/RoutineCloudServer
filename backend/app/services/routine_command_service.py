@@ -1,12 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime
-from typing import Optional
-
-from sqlalchemy import delete, func
-from sqlmodel import Session, select
-
 from app.models.routine import Routine
 from app.models.routine_access import AccessLevel, RoutineAccess, StartMode
 from app.models.routine_runtime_state import (
@@ -31,6 +24,11 @@ from app.services.runtime_state import (
     get_or_create_runtime_state,
     refresh_runtime_state,
 )
+from dataclasses import dataclass
+from datetime import datetime
+from sqlalchemy import delete, func
+from sqlmodel import Session, select
+from typing import Optional
 
 
 class CommandValidationError(Exception):
@@ -97,6 +95,42 @@ class RoutineCommandService:
         )
 
         return CommandResult(accepted=accepted)
+
+    async def stop_runtimes_for_routine(
+        self,
+        db: Session,
+        routine_id: int,
+    ) -> None:
+        """
+        Force stop any active runtime using the given routine and send events.
+        Typically called before routine deletion.
+        """
+        now = datetime.utcnow()
+        # Find all runtimes that have this routine active
+        runtimes = db.exec(
+            select(RoutineRuntimeState).where(RoutineRuntimeState.active_routine_id == routine_id)
+        ).all()
+
+        for runtime in runtimes:
+            # Send STOP event
+            sync_payload = build_runtime_sync_read(db, runtime, server_time=now)
+            context = CommandContext(
+                participant_user_ids=[p.user_id for p in (runtime.participants or [])]
+            )
+            actor_payload = RuntimeActorRead(type="server", id="system:routine-delete")
+
+            await self._publish_runtime_event(
+                runtime=runtime,
+                command_type=RuntimeCommandType.ROUTINE_STOP,
+                actor=actor_payload,
+                context=context,
+                sync_payload=sync_payload,
+                active_payload=None,
+                server_time=now,
+            )
+            db.delete(runtime)
+            db.commit()
+
 
     def _apply_command(
         self,

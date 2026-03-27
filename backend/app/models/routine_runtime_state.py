@@ -1,10 +1,8 @@
+from app.models.base import BaseModel
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import List, Optional, TYPE_CHECKING
-
 from sqlmodel import Field, Relationship
-
-from app.models.base import BaseModel
+from typing import List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.routine import Routine
@@ -39,6 +37,7 @@ class RoutineRuntimeState(BaseModel, table=True):
     paused_at: Optional[datetime] = None
     pause_duration: int = 0
     active_routine: Optional["Routine"] = Relationship(
+        back_populates="runtime_states",
         sa_relationship_kwargs={"foreign_keys": "RoutineRuntimeState.active_routine_id"}
     )
     participants: List[RoutineRuntimeStateParticipant] = Relationship(
