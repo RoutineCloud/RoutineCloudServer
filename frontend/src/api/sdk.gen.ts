@@ -32,7 +32,7 @@ export class Devices {
                     type: 'http'
                 }
             ],
-            url: '/api/devices/',
+            url: '/devices/',
             ...options
         });
     }
@@ -50,7 +50,7 @@ export class Devices {
                     type: 'http'
                 }
             ],
-            url: '/api/devices/{device_id}',
+            url: '/devices/{device_id}',
             ...options
         });
     }
@@ -70,7 +70,7 @@ export class Users {
                     type: 'http'
                 }
             ],
-            url: '/api/users/me',
+            url: '/users/me',
             ...options
         });
     }
@@ -88,7 +88,7 @@ export class Users {
                     type: 'http'
                 }
             ],
-            url: '/api/users/me',
+            url: '/users/me',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -110,7 +110,7 @@ export class Users {
                     type: 'http'
                 }
             ],
-            url: '/api/users/',
+            url: '/users/',
             ...options
         });
     }
@@ -130,7 +130,7 @@ export class Tasks {
                     type: 'http'
                 }
             ],
-            url: '/api/tasks/',
+            url: '/tasks/',
             ...options
         });
     }
@@ -148,7 +148,7 @@ export class Tasks {
                     type: 'http'
                 }
             ],
-            url: '/api/tasks/',
+            url: '/tasks/',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -169,7 +169,7 @@ export class Tasks {
                     type: 'http'
                 }
             ],
-            url: '/api/tasks/{task_id}',
+            url: '/tasks/{task_id}',
             ...options
         });
     }
@@ -187,7 +187,7 @@ export class Tasks {
                     type: 'http'
                 }
             ],
-            url: '/api/tasks/{task_id}',
+            url: '/tasks/{task_id}',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ export class Routines {
                     type: 'http'
                 }
             ],
-            url: '/api/routines/',
+            url: '/routines/',
             ...options
         });
     }
@@ -227,7 +227,7 @@ export class Routines {
                     type: 'http'
                 }
             ],
-            url: '/api/routines/',
+            url: '/routines/',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -247,7 +247,7 @@ export class Routines {
                     type: 'http'
                 }
             ],
-            url: '/api/routines/{routine_id}',
+            url: '/routines/{routine_id}',
             ...options
         });
     }
@@ -264,7 +264,7 @@ export class Routines {
                     type: 'http'
                 }
             ],
-            url: '/api/routines/{routine_id}',
+            url: '/routines/{routine_id}',
             ...options
         });
     }
@@ -281,7 +281,7 @@ export class Routines {
                     type: 'http'
                 }
             ],
-            url: '/api/routines/{routine_id}',
+            url: '/routines/{routine_id}',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -302,7 +302,7 @@ export class Routines {
                     type: 'http'
                 }
             ],
-            url: '/api/routines/{routine_id}/tasks',
+            url: '/routines/{routine_id}/tasks',
             ...options
         });
     }
@@ -319,7 +319,7 @@ export class Routines {
                     type: 'http'
                 }
             ],
-            url: '/api/routines/{routine_id}/tasks',
+            url: '/routines/{routine_id}/tasks',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -340,7 +340,7 @@ export class Routines {
                     type: 'http'
                 }
             ],
-            url: '/api/routines/{routine_id}/tasks/{position}',
+            url: '/routines/{routine_id}/tasks/{position}',
             ...options
         });
     }
@@ -357,7 +357,7 @@ export class Routines {
                     type: 'http'
                 }
             ],
-            url: '/api/routines/{routine_id}/shares',
+            url: '/routines/{routine_id}/shares',
             ...options
         });
     }
@@ -374,7 +374,7 @@ export class Routines {
                     type: 'http'
                 }
             ],
-            url: '/api/routines/{routine_id}/shares',
+            url: '/routines/{routine_id}/shares',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -394,7 +394,7 @@ export class Routines {
                     type: 'http'
                 }
             ],
-            url: '/api/routines/{routine_id}/shares/{user_id}',
+            url: '/routines/{routine_id}/shares/{user_id}',
             ...options
         });
     }
@@ -411,7 +411,7 @@ export class Routines {
                     type: 'http'
                 }
             ],
-            url: '/api/routines/{routine_id}/shares/{user_id}',
+            url: '/routines/{routine_id}/shares/{user_id}',
             ...options
         });
     }
@@ -428,7 +428,7 @@ export class Routines {
                     type: 'http'
                 }
             ],
-            url: '/api/routines/{routine_id}/shares/{user_id}',
+            url: '/routines/{routine_id}/shares/{user_id}',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -451,7 +451,7 @@ export class Runtime {
                     type: 'http'
                 }
             ],
-            url: '/api/runtime/active',
+            url: '/runtime/active',
             ...options
         });
     }
@@ -468,7 +468,7 @@ export class Runtime {
                     type: 'http'
                 }
             ],
-            url: '/api/runtime/sync',
+            url: '/runtime/sync',
             ...options
         });
     }
@@ -485,7 +485,7 @@ export class Runtime {
                     type: 'http'
                 }
             ],
-            url: '/api/runtime/start',
+            url: '/runtime/start',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -506,7 +506,7 @@ export class Runtime {
                     type: 'http'
                 }
             ],
-            url: '/api/runtime/pause',
+            url: '/runtime/pause',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -527,7 +527,7 @@ export class Runtime {
                     type: 'http'
                 }
             ],
-            url: '/api/runtime/resume',
+            url: '/runtime/resume',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -548,7 +548,7 @@ export class Runtime {
                     type: 'http'
                 }
             ],
-            url: '/api/runtime/skip',
+            url: '/runtime/skip',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -569,7 +569,7 @@ export class Runtime {
                     type: 'http'
                 }
             ],
-            url: '/api/runtime/stop',
+            url: '/runtime/stop',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -590,7 +590,7 @@ export class Runtime {
                     type: 'http'
                 }
             ],
-            url: '/api/runtime/complete',
+            url: '/runtime/complete',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -611,7 +611,7 @@ export class Runtime {
                     type: 'http'
                 }
             ],
-            url: '/api/runtime/events',
+            url: '/runtime/events',
             ...options
         });
     }
@@ -631,7 +631,7 @@ export class Friends {
                     type: 'http'
                 }
             ],
-            url: '/api/friends/',
+            url: '/friends/',
             ...options
         });
     }
@@ -649,7 +649,7 @@ export class Friends {
                     type: 'http'
                 }
             ],
-            url: '/api/friends/requests',
+            url: '/friends/requests',
             ...options
         });
     }
@@ -667,7 +667,7 @@ export class Friends {
                     type: 'http'
                 }
             ],
-            url: '/api/friends/add',
+            url: '/friends/add',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -689,7 +689,7 @@ export class Friends {
                     type: 'http'
                 }
             ],
-            url: '/api/friends/{friend_id}/accept',
+            url: '/friends/{friend_id}/accept',
             ...options
         });
     }
@@ -707,7 +707,7 @@ export class Friends {
                     type: 'http'
                 }
             ],
-            url: '/api/friends/{friend_id}/decline',
+            url: '/friends/{friend_id}/decline',
             ...options
         });
     }
@@ -725,7 +725,7 @@ export class Friends {
                     type: 'http'
                 }
             ],
-            url: '/api/friends/{friend_id}',
+            url: '/friends/{friend_id}',
             ...options
         });
     }

@@ -1,8 +1,9 @@
-from app.core.config import settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.core.config import settings
 
 # Create FastAPI app
 app = FastAPI(title="Routine Cloud API Gateway")

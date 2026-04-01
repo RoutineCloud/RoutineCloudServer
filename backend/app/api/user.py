@@ -8,7 +8,7 @@ from app.schemas.user import UserRead, UserUpdate
 
 # Create router
 router = APIRouter(
-    prefix="/api/users",
+    prefix="/users",
     tags=["users"],
     responses={404: {"description": "Not found"}},
 )

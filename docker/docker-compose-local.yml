@@ -51,7 +51,7 @@ services:
       - BACKEND_HOSTNAME=${BACKEND_HOSTNAME:-backend:8000}
       - VITE_OIDC_ISSUER=${VITE_OIDC_ISSUER}
       - VITE_OIDC_CLIENT_ID=${VITE_OIDC_CLIENT_ID}
-      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:3000}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-/api/v1}
     networks:
       - routine-cloud-network
 

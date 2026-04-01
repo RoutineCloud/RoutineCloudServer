@@ -1,3 +1,8 @@
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlmodel import Session, select
+
 from app.core.security import get_current_user
 from app.db.session import get_db
 from app.models.friendship import Friendship, FriendshipStatus
@@ -19,12 +24,9 @@ from app.schemas.routine import (
 from app.services.routine_command_service import routine_command_service
 from app.services.routine_payloads import load_routine_tasks as _load_routine_tasks
 from app.services.routine_payloads import routine_to_read as _routine_to_read
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlmodel import Session, select
-from typing import List, Optional
 
 router = APIRouter(
-    prefix="/api/routines",
+    prefix="/routines",
     tags=["routines"],
 )
 

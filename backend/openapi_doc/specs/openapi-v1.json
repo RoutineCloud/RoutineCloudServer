@@ -6,7 +6,7 @@
     "version": "v1"
   },
   "paths": {
-    "/api/devices/": {
+    "/devices/": {
       "get": {
         "tags": [
           "devices"
@@ -62,7 +62,7 @@
         }
       }
     },
-    "/api/devices/{device_id}": {
+    "/devices/{device_id}": {
       "get": {
         "tags": [
           "devices"
@@ -123,7 +123,7 @@
         }
       }
     },
-    "/api/users/me": {
+    "/users/me": {
       "get": {
         "tags": [
           "users"
@@ -235,7 +235,7 @@
         }
       }
     },
-    "/api/users/": {
+    "/users/": {
       "get": {
         "tags": [
           "users"
@@ -291,7 +291,7 @@
         }
       }
     },
-    "/api/tasks/": {
+    "/tasks/": {
       "get": {
         "tags": [
           "tasks"
@@ -401,7 +401,7 @@
         }
       }
     },
-    "/api/tasks/{task_id}": {
+    "/tasks/{task_id}": {
       "patch": {
         "tags": [
           "tasks"
@@ -518,7 +518,7 @@
         }
       }
     },
-    "/api/routines/": {
+    "/routines/": {
       "post": {
         "tags": [
           "routines"
@@ -638,7 +638,7 @@
         }
       }
     },
-    "/api/routines/{routine_id}": {
+    "/routines/{routine_id}": {
       "get": {
         "tags": [
           "routines"
@@ -808,7 +808,7 @@
         }
       }
     },
-    "/api/routines/{routine_id}/tasks": {
+    "/routines/{routine_id}/tasks": {
       "get": {
         "tags": [
           "routines"
@@ -938,7 +938,7 @@
         }
       }
     },
-    "/api/routines/{routine_id}/tasks/{position}": {
+    "/routines/{routine_id}/tasks/{position}": {
       "delete": {
         "tags": [
           "routines"
@@ -1008,7 +1008,7 @@
         }
       }
     },
-    "/api/routines/{routine_id}/shares": {
+    "/routines/{routine_id}/shares": {
       "post": {
         "tags": [
           "routines"
@@ -1134,7 +1134,7 @@
         }
       }
     },
-    "/api/routines/{routine_id}/shares/{user_id}": {
+    "/routines/{routine_id}/shares/{user_id}": {
       "get": {
         "tags": [
           "routines"
@@ -1331,7 +1331,7 @@
         }
       }
     },
-    "/api/runtime/active": {
+    "/runtime/active": {
       "get": {
         "tags": [
           "runtime"
@@ -1379,7 +1379,7 @@
         }
       }
     },
-    "/api/runtime/sync": {
+    "/runtime/sync": {
       "get": {
         "tags": [
           "runtime"
@@ -1427,7 +1427,7 @@
         }
       }
     },
-    "/api/runtime/start": {
+    "/runtime/start": {
       "post": {
         "tags": [
           "runtime"
@@ -1485,7 +1485,7 @@
         }
       }
     },
-    "/api/runtime/pause": {
+    "/runtime/pause": {
       "post": {
         "tags": [
           "runtime"
@@ -1543,7 +1543,7 @@
         }
       }
     },
-    "/api/runtime/resume": {
+    "/runtime/resume": {
       "post": {
         "tags": [
           "runtime"
@@ -1601,7 +1601,7 @@
         }
       }
     },
-    "/api/runtime/skip": {
+    "/runtime/skip": {
       "post": {
         "tags": [
           "runtime"
@@ -1659,7 +1659,7 @@
         }
       }
     },
-    "/api/runtime/stop": {
+    "/runtime/stop": {
       "post": {
         "tags": [
           "runtime"
@@ -1717,7 +1717,7 @@
         }
       }
     },
-    "/api/runtime/complete": {
+    "/runtime/complete": {
       "post": {
         "tags": [
           "runtime"
@@ -1775,7 +1775,7 @@
         }
       }
     },
-    "/api/runtime/events": {
+    "/runtime/events": {
       "get": {
         "tags": [
           "runtime"
@@ -1819,7 +1819,7 @@
         }
       }
     },
-    "/api/friends/": {
+    "/friends/": {
       "get": {
         "tags": [
           "friends"
@@ -1872,7 +1872,7 @@
         }
       }
     },
-    "/api/friends/requests": {
+    "/friends/requests": {
       "get": {
         "tags": [
           "friends"
@@ -1925,7 +1925,7 @@
         }
       }
     },
-    "/api/friends/add": {
+    "/friends/add": {
       "post": {
         "tags": [
           "friends"
@@ -1982,7 +1982,7 @@
         }
       }
     },
-    "/api/friends/{friend_id}/accept": {
+    "/friends/{friend_id}/accept": {
       "post": {
         "tags": [
           "friends"
@@ -2038,7 +2038,7 @@
         }
       }
     },
-    "/api/friends/{friend_id}/decline": {
+    "/friends/{friend_id}/decline": {
       "post": {
         "tags": [
           "friends"
@@ -2094,7 +2094,7 @@
         }
       }
     },
-    "/api/friends/{friend_id}": {
+    "/friends/{friend_id}": {
       "delete": {
         "tags": [
           "friends"

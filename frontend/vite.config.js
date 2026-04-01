@@ -19,9 +19,10 @@ export default defineConfig({
     port: 3000,
     allowedHosts: ['hinderingly-monocotyledonous-otilia.ngrok-free.dev'],
     proxy: {
-      '/api': {
-        target: 'http://localhost:8000/v1',
+      '^/api': {
+        target: 'http://localhost:8000',
         changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
       }
     }
   },

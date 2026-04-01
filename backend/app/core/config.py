@@ -13,7 +13,6 @@ class Settings(BaseSettings):
     """
 
     # API settings
-    API_V1_STR: str = "/api"
     SECRET_KEY: str = secrets.token_urlsafe(32)
 
     ALLOWED_HOSTS: List[str] = []

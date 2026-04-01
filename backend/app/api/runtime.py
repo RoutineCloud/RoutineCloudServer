@@ -28,7 +28,7 @@ from app.services.runtime_state import (
     refresh_runtime_state,
 )
 
-router = APIRouter(prefix="/api/runtime", tags=["runtime"])
+router = APIRouter(prefix="/runtime", tags=["runtime"])
 
 
 def _server_command_id(user_id: int, command_type: RuntimeCommandType) -> str:

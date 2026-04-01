@@ -550,7 +550,7 @@ export type DevicesListData = {
     };
     path?: never;
     query?: never;
-    url: '/api/devices/';
+    url: '/devices/';
 };
 
 export type DevicesListErrors = {
@@ -591,7 +591,7 @@ export type DevicesGetData = {
         device_id: number;
     };
     query?: never;
-    url: '/api/devices/{device_id}';
+    url: '/devices/{device_id}';
 };
 
 export type DevicesGetErrors = {
@@ -626,7 +626,7 @@ export type UsersMeData = {
     };
     path?: never;
     query?: never;
-    url: '/api/users/me';
+    url: '/users/me';
 };
 
 export type UsersMeErrors = {
@@ -661,7 +661,7 @@ export type UsersUpdateMeData = {
     };
     path?: never;
     query?: never;
-    url: '/api/users/me';
+    url: '/users/me';
 };
 
 export type UsersUpdateMeErrors = {
@@ -696,7 +696,7 @@ export type UsersListData = {
     };
     path?: never;
     query?: never;
-    url: '/api/users/';
+    url: '/users/';
 };
 
 export type UsersListErrors = {
@@ -732,7 +732,7 @@ export type TasksListData = {
     };
     path?: never;
     query?: never;
-    url: '/api/tasks/';
+    url: '/tasks/';
 };
 
 export type TasksListErrors = {
@@ -764,7 +764,7 @@ export type TasksCreateData = {
     };
     path?: never;
     query?: never;
-    url: '/api/tasks/';
+    url: '/tasks/';
 };
 
 export type TasksCreateErrors = {
@@ -800,7 +800,7 @@ export type TasksDeleteData = {
         task_id: number;
     };
     query?: never;
-    url: '/api/tasks/{task_id}';
+    url: '/tasks/{task_id}';
 };
 
 export type TasksDeleteErrors = {
@@ -836,7 +836,7 @@ export type TasksUpdateData = {
         task_id: number;
     };
     query?: never;
-    url: '/api/tasks/{task_id}';
+    url: '/tasks/{task_id}';
 };
 
 export type TasksUpdateErrors = {
@@ -873,7 +873,7 @@ export type RoutinesListData = {
          */
         include_tasks?: boolean;
     };
-    url: '/api/routines/';
+    url: '/routines/';
 };
 
 export type RoutinesListErrors = {
@@ -905,7 +905,7 @@ export type RoutinesCreateData = {
     };
     path?: never;
     query?: never;
-    url: '/api/routines/';
+    url: '/routines/';
 };
 
 export type RoutinesCreateErrors = {
@@ -941,7 +941,7 @@ export type RoutinesDeleteData = {
         routine_id: number;
     };
     query?: never;
-    url: '/api/routines/{routine_id}';
+    url: '/routines/{routine_id}';
 };
 
 export type RoutinesDeleteErrors = {
@@ -977,7 +977,7 @@ export type RoutinesGetData = {
         routine_id: number;
     };
     query?: never;
-    url: '/api/routines/{routine_id}';
+    url: '/routines/{routine_id}';
 };
 
 export type RoutinesGetErrors = {
@@ -1013,7 +1013,7 @@ export type RoutinesUpdateData = {
         routine_id: number;
     };
     query?: never;
-    url: '/api/routines/{routine_id}';
+    url: '/routines/{routine_id}';
 };
 
 export type RoutinesUpdateErrors = {
@@ -1049,7 +1049,7 @@ export type RoutinesTasksListData = {
         routine_id: number;
     };
     query?: never;
-    url: '/api/routines/{routine_id}/tasks';
+    url: '/routines/{routine_id}/tasks';
 };
 
 export type RoutinesTasksListErrors = {
@@ -1086,7 +1086,7 @@ export type RoutinesTasksAddData = {
         routine_id: number;
     };
     query?: never;
-    url: '/api/routines/{routine_id}/tasks';
+    url: '/routines/{routine_id}/tasks';
 };
 
 export type RoutinesTasksAddErrors = {
@@ -1127,7 +1127,7 @@ export type RoutinesTasksRemoveData = {
         position: number;
     };
     query?: never;
-    url: '/api/routines/{routine_id}/tasks/{position}';
+    url: '/routines/{routine_id}/tasks/{position}';
 };
 
 export type RoutinesTasksRemoveErrors = {
@@ -1164,7 +1164,7 @@ export type RoutinesSharesListData = {
         routine_id: number;
     };
     query?: never;
-    url: '/api/routines/{routine_id}/shares';
+    url: '/routines/{routine_id}/shares';
 };
 
 export type RoutinesSharesListErrors = {
@@ -1201,7 +1201,7 @@ export type RoutinesSharesCreateData = {
         routine_id: number;
     };
     query?: never;
-    url: '/api/routines/{routine_id}/shares';
+    url: '/routines/{routine_id}/shares';
 };
 
 export type RoutinesSharesCreateErrors = {
@@ -1241,7 +1241,7 @@ export type RoutinesSharesDeleteData = {
         user_id: number;
     };
     query?: never;
-    url: '/api/routines/{routine_id}/shares/{user_id}';
+    url: '/routines/{routine_id}/shares/{user_id}';
 };
 
 export type RoutinesSharesDeleteErrors = {
@@ -1281,7 +1281,7 @@ export type RoutinesSharesGetData = {
         user_id: number;
     };
     query?: never;
-    url: '/api/routines/{routine_id}/shares/{user_id}';
+    url: '/routines/{routine_id}/shares/{user_id}';
 };
 
 export type RoutinesSharesGetErrors = {
@@ -1321,7 +1321,7 @@ export type RoutinesSharesUpdateData = {
         user_id: number;
     };
     query?: never;
-    url: '/api/routines/{routine_id}/shares/{user_id}';
+    url: '/routines/{routine_id}/shares/{user_id}';
 };
 
 export type RoutinesSharesUpdateErrors = {
@@ -1352,7 +1352,7 @@ export type RuntimeActiveData = {
     };
     path?: never;
     query?: never;
-    url: '/api/runtime/active';
+    url: '/runtime/active';
 };
 
 export type RuntimeActiveErrors = {
@@ -1383,7 +1383,7 @@ export type RuntimeSyncData = {
     };
     path?: never;
     query?: never;
-    url: '/api/runtime/sync';
+    url: '/runtime/sync';
 };
 
 export type RuntimeSyncErrors = {
@@ -1414,7 +1414,7 @@ export type RuntimeStartData = {
     };
     path?: never;
     query?: never;
-    url: '/api/runtime/start';
+    url: '/runtime/start';
 };
 
 export type RuntimeStartErrors = {
@@ -1445,7 +1445,7 @@ export type RuntimePauseData = {
     };
     path?: never;
     query?: never;
-    url: '/api/runtime/pause';
+    url: '/runtime/pause';
 };
 
 export type RuntimePauseErrors = {
@@ -1476,7 +1476,7 @@ export type RuntimeResumeData = {
     };
     path?: never;
     query?: never;
-    url: '/api/runtime/resume';
+    url: '/runtime/resume';
 };
 
 export type RuntimeResumeErrors = {
@@ -1507,7 +1507,7 @@ export type RuntimeSkipData = {
     };
     path?: never;
     query?: never;
-    url: '/api/runtime/skip';
+    url: '/runtime/skip';
 };
 
 export type RuntimeSkipErrors = {
@@ -1538,7 +1538,7 @@ export type RuntimeStopData = {
     };
     path?: never;
     query?: never;
-    url: '/api/runtime/stop';
+    url: '/runtime/stop';
 };
 
 export type RuntimeStopErrors = {
@@ -1569,7 +1569,7 @@ export type RuntimeCompleteData = {
     };
     path?: never;
     query?: never;
-    url: '/api/runtime/complete';
+    url: '/runtime/complete';
 };
 
 export type RuntimeCompleteErrors = {
@@ -1600,7 +1600,7 @@ export type RuntimeEventsData = {
     };
     path?: never;
     query?: never;
-    url: '/api/runtime/events';
+    url: '/runtime/events';
 };
 
 export type RuntimeEventsErrors = {
@@ -1629,7 +1629,7 @@ export type FriendsListData = {
     };
     path?: never;
     query?: never;
-    url: '/api/friends/';
+    url: '/friends/';
 };
 
 export type FriendsListErrors = {
@@ -1661,7 +1661,7 @@ export type FriendsRequestsListData = {
     };
     path?: never;
     query?: never;
-    url: '/api/friends/requests';
+    url: '/friends/requests';
 };
 
 export type FriendsRequestsListErrors = {
@@ -1693,7 +1693,7 @@ export type FriendsAddData = {
     };
     path?: never;
     query?: never;
-    url: '/api/friends/add';
+    url: '/friends/add';
 };
 
 export type FriendsAddErrors = {
@@ -1727,7 +1727,7 @@ export type FriendsAcceptData = {
         friend_id: number;
     };
     query?: never;
-    url: '/api/friends/{friend_id}/accept';
+    url: '/friends/{friend_id}/accept';
 };
 
 export type FriendsAcceptErrors = {
@@ -1761,7 +1761,7 @@ export type FriendsDeclineData = {
         friend_id: number;
     };
     query?: never;
-    url: '/api/friends/{friend_id}/decline';
+    url: '/friends/{friend_id}/decline';
 };
 
 export type FriendsDeclineErrors = {
@@ -1795,7 +1795,7 @@ export type FriendsRemoveData = {
         friend_id: number;
     };
     query?: never;
-    url: '/api/friends/{friend_id}';
+    url: '/friends/{friend_id}';
 };
 
 export type FriendsRemoveErrors = {

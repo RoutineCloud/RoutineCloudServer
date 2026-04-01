@@ -13,7 +13,7 @@ from app.models.user import User
 from app.schemas.task import TaskCreate, TaskRead, TaskUpdate
 
 router = APIRouter(
-    prefix="/api/tasks",
+    prefix="/tasks",
     tags=["tasks"],
 )
 

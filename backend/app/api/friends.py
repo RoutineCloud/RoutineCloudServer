@@ -10,7 +10,7 @@ from app.models.user import User
 from app.schemas.friend import FriendRead, FriendAdd
 
 router = APIRouter(
-    prefix="/api/friends",
+    prefix="/friends",
     tags=["friends"],
 )
 
