@@ -3,7 +3,11 @@
 /**
  * AccessLevel
  */
-export type AccessLevel = 'OWNER' | 'START' | 'READ';
+export enum AccessLevel {
+    OWNER = 'OWNER',
+    START = 'START',
+    READ = 'READ'
+}
 
 /**
  * Device
@@ -31,7 +35,10 @@ export type DeviceRead = {
 /**
  * DeviceStatus
  */
-export type DeviceStatus = 'ONLINE' | 'OFFLINE';
+export enum DeviceStatus {
+    ONLINE = 'ONLINE',
+    OFFLINE = 'OFFLINE'
+}
 
 /**
  * FriendAdd
@@ -65,7 +72,10 @@ export type FriendRead = {
 /**
  * FriendshipStatus
  */
-export type FriendshipStatus = 'PENDING' | 'ACCEPTED';
+export enum FriendshipStatus {
+    PENDING = 'PENDING',
+    ACCEPTED = 'ACCEPTED'
+}
 
 /**
  * HTTPValidationError
@@ -261,7 +271,14 @@ export type RuntimeCommandRequest = {
 /**
  * RuntimeCommandType
  */
-export type RuntimeCommandType = 'ROUTINE_START' | 'ROUTINE_PAUSE' | 'ROUTINE_RESUME' | 'ROUTINE_SKIP' | 'ROUTINE_STOP' | 'ROUTINE_COMPLETE';
+export enum RuntimeCommandType {
+    ROUTINE_START = 'ROUTINE_START',
+    ROUTINE_PAUSE = 'ROUTINE_PAUSE',
+    ROUTINE_RESUME = 'ROUTINE_RESUME',
+    ROUTINE_SKIP = 'ROUTINE_SKIP',
+    ROUTINE_STOP = 'ROUTINE_STOP',
+    ROUTINE_COMPLETE = 'ROUTINE_COMPLETE'
+}
 
 /**
  * RuntimeEventEnvelope
@@ -284,7 +301,14 @@ export type RuntimeEventEnvelope = {
 /**
  * RuntimeEventType
  */
-export type RuntimeEventType = 'RUNTIME_STARTED' | 'RUNTIME_PAUSED' | 'RUNTIME_RESUMED' | 'RUNTIME_SKIPPED' | 'RUNTIME_STOPPED' | 'RUNTIME_COMPLETED';
+export enum RuntimeEventType {
+    RUNTIME_STARTED = 'RUNTIME_STARTED',
+    RUNTIME_PAUSED = 'RUNTIME_PAUSED',
+    RUNTIME_RESUMED = 'RUNTIME_RESUMED',
+    RUNTIME_SKIPPED = 'RUNTIME_SKIPPED',
+    RUNTIME_STOPPED = 'RUNTIME_STOPPED',
+    RUNTIME_COMPLETED = 'RUNTIME_COMPLETED'
+}
 
 /**
  * RuntimeRoutineRead
@@ -354,7 +378,12 @@ export type RuntimeStateRead = {
 /**
  * RuntimeStatus
  */
-export type RuntimeStatus = 'IDLE' | 'RUNNING' | 'PAUSED' | 'FINISHED';
+export enum RuntimeStatus {
+    IDLE = 'IDLE',
+    RUNNING = 'RUNNING',
+    PAUSED = 'PAUSED',
+    FINISHED = 'FINISHED'
+}
 
 /**
  * RuntimeSyncRead
@@ -370,7 +399,11 @@ export type RuntimeSyncRead = {
 /**
  * StartMode
  */
-export type StartMode = 'NONE' | 'FOLLOW_OWNER' | 'FOLLOW_ANY';
+export enum StartMode {
+    NONE = 'NONE',
+    FOLLOW_OWNER = 'FOLLOW_OWNER',
+    FOLLOW_ANY = 'FOLLOW_ANY'
+}
 
 /**
  * TaskCreate

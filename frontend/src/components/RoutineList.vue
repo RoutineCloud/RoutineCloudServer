@@ -2,7 +2,7 @@
 import {computed, ref} from 'vue'
 import {useRoutinesStore} from '@/stores/routines'
 import {useRuntimeStore} from '@/stores/runtime'
-import {RoutineRead} from '@/api'
+import {AccessLevel, RoutineRead} from '@/api'
 import ShareRoutineDialog from '@/components/ShareRoutineDialog.vue'
 
 const props = defineProps<{ routines: RoutineRead[]; modelValue?: number }>()
@@ -54,13 +54,13 @@ function openShare(r: RoutineRead) {
     </div>
     <v-list density="compact">
       <v-list-item v-for="r in filtered" :key="r.id" :active="r.id===modelValue" @click="select(r.id)">
-        <template #prepend v-if="r.access_level && r.access_level !== 'owner'">
+        <template #prepend v-if="r.access_level && r.access_level !== AccessLevel.OWNER">
           <v-icon icon="mdi-account-group" size="small" color="primary" class="mr-2" title="Shared with me"></v-icon>
         </template>
         <v-list-item-title>{{ r.name }}</v-list-item-title>
         <template #append>
           <v-btn
-            v-if="r.access_level === 'owner'"
+            v-if="r.access_level === AccessLevel.OWNER"
             icon="mdi-share-variant"
             size="small"
             variant="text"
@@ -72,7 +72,7 @@ function openShare(r: RoutineRead) {
             size="small"
             variant="text"
             :loading="startingId===r.id"
-            :disabled="startingId===r.id || r.access_level === 'read'"
+            :disabled="startingId===r.id || r.access_level === AccessLevel.READ"
             @click.stop="startRoutine(r.id)"
             :title="'Start routine'"
           />

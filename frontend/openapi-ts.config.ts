@@ -8,7 +8,10 @@ export default defineConfig({
   input: resolve(rootDir, '../backend/openapi_doc/specs/openapi-v1.json'),
   output: 'src/api',
   plugins: [
-    '@hey-api/typescript',
+    {
+      name: '@hey-api/typescript',
+      enums: 'typescript',
+    },
     {
       name: '@hey-api/client-axios',
       runtimeConfigPath: '../hey-api'

@@ -59,7 +59,7 @@ watch(isOpen, async (val) => {
 async function shareWithFriend(friendId: number) {
   loading.value = true
   try {
-    await routinesStore.shareRoutine(props.routine.id, friendId, 'read')
+    await routinesStore.shareRoutine(props.routine.id, friendId, AccessLevel.READ)
   } catch (e: any) {
     error.value = e.body?.detail || 'Failed to share routine'
   } finally {
@@ -119,7 +119,7 @@ async function updateAccessLevel(userId: number, level: AccessLevel) {
                 <v-select
                   :model-value="share.access_level"
                   @update:model-value="(val) => updateAccessLevel(share.user_id, val)"
-                  :items="['read', 'start']"
+                  :items="[AccessLevel.READ, AccessLevel.START]"
                   density="compact"
                   variant="plain"
                   hide-details

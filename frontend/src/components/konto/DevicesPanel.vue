@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {onMounted} from 'vue'
 import {useDeviceStore} from '@/stores/index.js'
+import {DeviceStatus} from '@/api'
 
 const devicesStore = useDeviceStore()
 
@@ -12,9 +13,9 @@ function refresh() {
   devicesStore.load()
 }
 
-function statusColor(status?: string) {
-  if (status === 'online') return 'green'
-  if (status === 'offline') return 'grey'
+function statusColor(status?: DeviceStatus) {
+  if (status === DeviceStatus.ONLINE) return 'green'
+  if (status === DeviceStatus.OFFLINE) return 'grey'
   return 'grey'
 }
 </script>

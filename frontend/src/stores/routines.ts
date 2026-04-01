@@ -127,7 +127,7 @@ export const useRoutinesStore = defineStore('routines', () => {
     return data
   }
 
-  async function shareRoutine(routineId: number, userId: number, accessLevel: AccessLevel = 'read') {
+  async function shareRoutine(routineId: number, userId: number, accessLevel: AccessLevel = AccessLevel.READ) {
     const { data } = await Routines.routinesSharesCreate({
       path: { routine_id: routineId },
       body: { user_id: userId, access_level: accessLevel }

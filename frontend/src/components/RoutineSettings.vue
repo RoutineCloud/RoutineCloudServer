@@ -46,9 +46,9 @@ async function toggleNotify(bit: number) {
         <v-select
           v-model="startMode"
           :items="[
-            { title: 'Manual Only', value: 'none' },
-            { title: 'Follow Owner', value: 'follow_owner' },
-            { title: 'Follow Any', value: 'follow_any' }
+            { title: 'Manual Only', value: StartMode.NONE },
+            { title: 'Follow Owner', value: StartMode.FOLLOW_OWNER },
+            { title: 'Follow Any', value: StartMode.FOLLOW_ANY }
           ]"
           density="compact"
           variant="outlined"

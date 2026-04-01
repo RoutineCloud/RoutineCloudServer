@@ -1,11 +1,13 @@
 import {computed, ref, watch} from 'vue'
 import {
+  AccessLevel,
   Runtime,
   type RuntimeActiveRead,
   type RuntimeCommandAccepted,
   type RuntimeCommandRequest,
-  type RuntimeCommandType,
+  RuntimeCommandType,
   type RuntimeEventEnvelope,
+  RuntimeStatus,
   type RuntimeSyncRead,
   type TaskInRoutineRead,
 } from '@/api'
@@ -36,8 +38,8 @@ export const useRuntimeStore = defineStore('runtime', () => {
   const runtimeState = computed(() => activeRuntime.value?.runtime ?? null)
   const activeRoutine = computed(() => activeRuntime.value?.routine ?? null)
   const hasActiveRoutine = computed(() => !!runtimeState.value?.routine_id)
-  const isPaused = computed(() => runtimeState.value?.status === 'paused')
-  const isRunning = computed(() => runtimeState.value?.status === 'running')
+  const isPaused = computed(() => runtimeState.value?.status === RuntimeStatus.PAUSED)
+  const isRunning = computed(() => runtimeState.value?.status === RuntimeStatus.RUNNING)
   const sortedRoutineTasks = computed(() =>
     [...(activeRoutine.value?.tasks ?? [])].sort((a, b) => a.position - b.position),
   )
@@ -45,7 +47,7 @@ export const useRuntimeStore = defineStore('runtime', () => {
     const routineId = runtimeState.value?.routine_id
     if (!routineId) return false
     const routine = routinesStore.all.find((entry) => entry.id === routineId)
-    return routine?.access_level === 'owner' || routine?.access_level === 'start'
+    return routine?.access_level === AccessLevel.OWNER || routine?.access_level === AccessLevel.START
   })
   const derivedProgress = computed(() => {
     const runtime = runtimeState.value
@@ -73,7 +75,7 @@ export const useRuntimeStore = defineStore('runtime', () => {
 
     const taskStartedAtMs = parseUtcDate(runtime.task_started_at)
     const referenceMs =
-      runtime.status === 'paused' && runtime.paused_at
+      runtime.status === RuntimeStatus.PAUSED && runtime.paused_at
         ? parseUtcDate(runtime.paused_at)
         : tickNowMs.value + timeOffsetMs.value
     const safeReferenceMs = Number.isNaN(referenceMs) ? tickNowMs.value + timeOffsetMs.value : referenceMs
@@ -175,22 +177,22 @@ export const useRuntimeStore = defineStore('runtime', () => {
 
     let response
     switch (type) {
-      case 'routine.start':
+      case RuntimeCommandType.ROUTINE_START:
         response = await Runtime.runtimeStart({ body })
         break
-      case 'routine.pause':
+      case RuntimeCommandType.ROUTINE_PAUSE:
         response = await Runtime.runtimePause({ body })
         break
-      case 'routine.resume':
+      case RuntimeCommandType.ROUTINE_RESUME:
         response = await Runtime.runtimeResume({ body })
         break
-      case 'routine.skip':
+      case RuntimeCommandType.ROUTINE_SKIP:
         response = await Runtime.runtimeSkip({ body })
         break
-      case 'routine.stop':
+      case RuntimeCommandType.ROUTINE_STOP:
         response = await Runtime.runtimeStop({ body })
         break
-      case 'routine.complete':
+      case RuntimeCommandType.ROUTINE_COMPLETE:
         response = await Runtime.runtimeComplete({ body })
         break
       default:
@@ -203,35 +205,35 @@ export const useRuntimeStore = defineStore('runtime', () => {
 
   async function startRoutine(routineId: number) {
     const routine = routinesStore.all.find((r) => r.id === routineId)
-    if (routine && routine.access_level === 'read') {
+    if (routine && routine.access_level === AccessLevel.READ) {
       throw new Error('Insufficient permissions to start this routine')
     }
-    return sendCommand('routine.start', routineId)
+    return sendCommand(RuntimeCommandType.ROUTINE_START, routineId)
   }
 
   async function pauseRoutine() {
     if (!canControl.value) return
-    return sendCommand('routine.pause')
+    return sendCommand(RuntimeCommandType.ROUTINE_PAUSE)
   }
 
   async function resumeRoutine() {
     if (!canControl.value) return
-    return sendCommand('routine.resume')
+    return sendCommand(RuntimeCommandType.ROUTINE_RESUME)
   }
 
   async function skipRoutine() {
     if (!canControl.value) return
-    return sendCommand('routine.skip')
+    return sendCommand(RuntimeCommandType.ROUTINE_SKIP)
   }
 
   async function stopRoutine() {
     if (!canControl.value) return
-    return sendCommand('routine.stop')
+    return sendCommand(RuntimeCommandType.ROUTINE_STOP)
   }
 
   async function completeRoutine() {
     if (!canControl.value) return
-    return sendCommand('routine.complete')
+    return sendCommand(RuntimeCommandType.ROUTINE_COMPLETE)
   }
 
   function handleRuntimeEvent(event: RuntimeEventEnvelope) {
