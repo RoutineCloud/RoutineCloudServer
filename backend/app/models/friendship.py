@@ -10,8 +10,8 @@ if TYPE_CHECKING:
 
 
 class FriendshipStatus(str, Enum):
-    PENDING = "pending"
-    ACCEPTED = "accepted"
+    PENDING = "PENDING"
+    ACCEPTED = "ACCEPTED"
 
 
 class Friendship(BaseModel, table=True):

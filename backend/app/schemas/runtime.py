@@ -15,21 +15,21 @@ class RuntimeModel(BaseModel):
 
 
 class RuntimeCommandType(str, Enum):
-    ROUTINE_START = "routine.start"
-    ROUTINE_PAUSE = "routine.pause"
-    ROUTINE_RESUME = "routine.resume"
-    ROUTINE_SKIP = "routine.skip"
-    ROUTINE_STOP = "routine.stop"
-    ROUTINE_COMPLETE = "routine.complete"
+    ROUTINE_START = "ROUTINE_START"
+    ROUTINE_PAUSE = "ROUTINE_PAUSE"
+    ROUTINE_RESUME = "ROUTINE_RESUME"
+    ROUTINE_SKIP = "ROUTINE_SKIP"
+    ROUTINE_STOP = "ROUTINE_STOP"
+    ROUTINE_COMPLETE = "ROUTINE_COMPLETE"
 
 
 class RuntimeEventType(str, Enum):
-    RUNTIME_STARTED = "runtime.started"
-    RUNTIME_PAUSED = "runtime.paused"
-    RUNTIME_RESUMED = "runtime.resumed"
-    RUNTIME_SKIPPED = "runtime.skipped"
-    RUNTIME_STOPPED = "runtime.stopped"
-    RUNTIME_COMPLETED = "runtime.completed"
+    RUNTIME_STARTED = "RUNTIME_STARTED"
+    RUNTIME_PAUSED = "RUNTIME_PAUSED"
+    RUNTIME_RESUMED = "RUNTIME_RESUMED"
+    RUNTIME_SKIPPED = "RUNTIME_SKIPPED"
+    RUNTIME_STOPPED = "RUNTIME_STOPPED"
+    RUNTIME_COMPLETED = "RUNTIME_COMPLETED"
 
 
 class RuntimeActorRead(RuntimeModel):

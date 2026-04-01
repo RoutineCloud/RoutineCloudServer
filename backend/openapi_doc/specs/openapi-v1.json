@@ -2156,9 +2156,9 @@
       "AccessLevel": {
         "type": "string",
         "enum": [
-          "owner",
-          "start",
-          "read"
+          "OWNER",
+          "START",
+          "READ"
         ],
         "title": "AccessLevel"
       },
@@ -2183,7 +2183,7 @@
           },
           "status": {
             "$ref": "#/components/schemas/DeviceStatus",
-            "default": "offline"
+            "default": "OFFLINE"
           }
         },
         "type": "object",
@@ -2197,8 +2197,8 @@
       "DeviceStatus": {
         "type": "string",
         "enum": [
-          "online",
-          "offline"
+          "ONLINE",
+          "OFFLINE"
         ],
         "title": "DeviceStatus"
       },
@@ -2245,8 +2245,8 @@
       "FriendshipStatus": {
         "type": "string",
         "enum": [
-          "pending",
-          "accepted"
+          "PENDING",
+          "ACCEPTED"
         ],
         "title": "FriendshipStatus"
       },
@@ -2302,7 +2302,7 @@
           },
           "start_mode": {
             "$ref": "#/components/schemas/StartMode",
-            "default": "none"
+            "default": "NONE"
           },
           "notify_mask": {
             "type": "integer",
@@ -2333,7 +2333,7 @@
           },
           "access_level": {
             "$ref": "#/components/schemas/AccessLevel",
-            "default": "read"
+            "default": "READ"
           }
         },
         "type": "object",
@@ -2350,7 +2350,7 @@
           },
           "access_level": {
             "$ref": "#/components/schemas/AccessLevel",
-            "default": "read"
+            "default": "READ"
           },
           "username": {
             "type": "string",
@@ -2530,12 +2530,12 @@
       "RuntimeCommandType": {
         "type": "string",
         "enum": [
-          "routine.start",
-          "routine.pause",
-          "routine.resume",
-          "routine.skip",
-          "routine.stop",
-          "routine.complete"
+          "ROUTINE_START",
+          "ROUTINE_PAUSE",
+          "ROUTINE_RESUME",
+          "ROUTINE_SKIP",
+          "ROUTINE_STOP",
+          "ROUTINE_COMPLETE"
         ],
         "title": "RuntimeCommandType"
       },
@@ -2577,12 +2577,12 @@
       "RuntimeEventType": {
         "type": "string",
         "enum": [
-          "runtime.started",
-          "runtime.paused",
-          "runtime.resumed",
-          "runtime.skipped",
-          "runtime.stopped",
-          "runtime.completed"
+          "RUNTIME_STARTED",
+          "RUNTIME_PAUSED",
+          "RUNTIME_RESUMED",
+          "RUNTIME_SKIPPED",
+          "RUNTIME_STOPPED",
+          "RUNTIME_COMPLETED"
         ],
         "title": "RuntimeEventType"
       },
@@ -2683,10 +2683,10 @@
       "RuntimeStatus": {
         "type": "string",
         "enum": [
-          "idle",
-          "running",
-          "paused",
-          "finished"
+          "IDLE",
+          "RUNNING",
+          "PAUSED",
+          "FINISHED"
         ],
         "title": "RuntimeStatus"
       },
@@ -2711,9 +2711,9 @@
       "StartMode": {
         "type": "string",
         "enum": [
-          "none",
-          "follow_owner",
-          "follow_any"
+          "NONE",
+          "FOLLOW_OWNER",
+          "FOLLOW_ANY"
         ],
         "title": "StartMode"
       },

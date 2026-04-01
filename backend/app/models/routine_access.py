@@ -11,15 +11,15 @@ if TYPE_CHECKING:
 
 
 class StartMode(str, Enum):
-    NONE = "none"
-    FOLLOW_OWNER = "follow_owner"
-    FOLLOW_ANY = "follow_any"
+    NONE = "NONE"
+    FOLLOW_OWNER = "FOLLOW_OWNER"
+    FOLLOW_ANY = "FOLLOW_ANY"
 
 
 class AccessLevel(str, Enum):
-    OWNER = "owner"
-    START = "start"
-    READ = "read"
+    OWNER = "OWNER"
+    START = "START"
+    READ = "READ"
 
 
 class RoutineAccess(BaseModel, table=True):

@@ -3,7 +3,7 @@
 /**
  * AccessLevel
  */
-export type AccessLevel = 'owner' | 'start' | 'read';
+export type AccessLevel = 'OWNER' | 'START' | 'READ';
 
 /**
  * Device
@@ -31,7 +31,7 @@ export type DeviceRead = {
 /**
  * DeviceStatus
  */
-export type DeviceStatus = 'online' | 'offline';
+export type DeviceStatus = 'ONLINE' | 'OFFLINE';
 
 /**
  * FriendAdd
@@ -65,7 +65,7 @@ export type FriendRead = {
 /**
  * FriendshipStatus
  */
-export type FriendshipStatus = 'pending' | 'accepted';
+export type FriendshipStatus = 'PENDING' | 'ACCEPTED';
 
 /**
  * HTTPValidationError
@@ -261,7 +261,7 @@ export type RuntimeCommandRequest = {
 /**
  * RuntimeCommandType
  */
-export type RuntimeCommandType = 'routine.start' | 'routine.pause' | 'routine.resume' | 'routine.skip' | 'routine.stop' | 'routine.complete';
+export type RuntimeCommandType = 'ROUTINE_START' | 'ROUTINE_PAUSE' | 'ROUTINE_RESUME' | 'ROUTINE_SKIP' | 'ROUTINE_STOP' | 'ROUTINE_COMPLETE';
 
 /**
  * RuntimeEventEnvelope
@@ -284,7 +284,7 @@ export type RuntimeEventEnvelope = {
 /**
  * RuntimeEventType
  */
-export type RuntimeEventType = 'runtime.started' | 'runtime.paused' | 'runtime.resumed' | 'runtime.skipped' | 'runtime.stopped' | 'runtime.completed';
+export type RuntimeEventType = 'RUNTIME_STARTED' | 'RUNTIME_PAUSED' | 'RUNTIME_RESUMED' | 'RUNTIME_SKIPPED' | 'RUNTIME_STOPPED' | 'RUNTIME_COMPLETED';
 
 /**
  * RuntimeRoutineRead
@@ -354,7 +354,7 @@ export type RuntimeStateRead = {
 /**
  * RuntimeStatus
  */
-export type RuntimeStatus = 'idle' | 'running' | 'paused' | 'finished';
+export type RuntimeStatus = 'IDLE' | 'RUNNING' | 'PAUSED' | 'FINISHED';
 
 /**
  * RuntimeSyncRead
@@ -370,7 +370,7 @@ export type RuntimeSyncRead = {
 /**
  * StartMode
  */
-export type StartMode = 'none' | 'follow_owner' | 'follow_any';
+export type StartMode = 'NONE' | 'FOLLOW_OWNER' | 'FOLLOW_ANY';
 
 /**
  * TaskCreate

@@ -1,8 +1,10 @@
-from app.models.base import BaseModel
 from datetime import datetime, timedelta
 from enum import Enum
-from sqlmodel import Field, Relationship
 from typing import List, Optional, TYPE_CHECKING
+
+from sqlmodel import Field, Relationship
+
+from app.models.base import BaseModel
 
 if TYPE_CHECKING:
     from app.models.routine import Routine
@@ -10,10 +12,10 @@ if TYPE_CHECKING:
 
 
 class RuntimeStatus(str, Enum):
-    IDLE = "idle"
-    RUNNING = "running"
-    PAUSED = "paused"
-    FINISHED = "finished"
+    IDLE = "IDLE"
+    RUNNING = "RUNNING"
+    PAUSED = "PAUSED"
+    FINISHED = "FINISHED"
 
 
 class RoutineRuntimeStateParticipant(BaseModel, table=True):

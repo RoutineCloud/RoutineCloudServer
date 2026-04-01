@@ -9,8 +9,8 @@ if TYPE_CHECKING:
     from .user import User
 
 class DeviceStatus(str, Enum):
-    ONLINE = "online"
-    OFFLINE = "offline"
+    ONLINE = "ONLINE"
+    OFFLINE = "OFFLINE"
 
 class Device(BaseModel, table=True):
     """
