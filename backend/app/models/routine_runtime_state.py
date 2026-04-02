@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import List, Optional, TYPE_CHECKING
 
@@ -56,7 +56,7 @@ class RoutineRuntimeState(BaseModel, table=True):
         if self.active_routine_id is None or self.status != RuntimeStatus.RUNNING:
             return changed
 
-        current_now = now or datetime.utcnow()
+        current_now = now or datetime.now(timezone.utc)
 
         started_at = self.routine_started_at
         if started_at is None:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlmodel import Session, select
@@ -117,7 +117,7 @@ def build_runtime_sync_read(
     server_time: Optional[datetime] = None,
 ) -> RuntimeSyncRead:
     return RuntimeSyncRead(
-        server_time=server_time or datetime.utcnow(),
+        server_time=server_time or datetime.now(timezone.utc),
         runtime=build_runtime_state_read(db, runtime),
     )
 
@@ -131,7 +131,7 @@ def build_runtime_active_read(
     state = build_runtime_state_read(db, runtime)
     routine = load_runtime_routine(db, state.routine_id) if state.routine_id is not None else None
     return RuntimeActiveRead(
-        server_time=server_time or datetime.utcnow(),
+        server_time=server_time or datetime.now(timezone.utc),
         runtime=state,
         routine=routine,
     )

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
@@ -32,7 +32,7 @@ router = APIRouter(prefix="/runtime", tags=["runtime"])
 
 
 def _server_command_id(user_id: int, command_type: RuntimeCommandType) -> str:
-    return f"server-{user_id}-{command_type.value}-{int(datetime.utcnow().timestamp())}"
+    return f"server-{user_id}-{command_type.value}-{int(datetime.now(timezone.utc).timestamp())}"
 
 
 def _normalize_command(
@@ -45,7 +45,7 @@ def _normalize_command(
     if not payload.command_id:
         payload.command_id = _server_command_id(user_id, expected_type)
     if payload.requested_at is None:
-        payload.requested_at = datetime.utcnow()
+        payload.requested_at = datetime.now(timezone.utc)
     return payload
 
 

@@ -1,5 +1,12 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Optional
+
+from sqlalchemy import delete, func
+from sqlmodel import Session, select
+
 from app.models.routine import Routine
 from app.models.routine_access import AccessLevel, RoutineAccess, StartMode
 from app.models.routine_runtime_state import (
@@ -24,11 +31,6 @@ from app.services.runtime_state import (
     get_or_create_runtime_state,
     refresh_runtime_state,
 )
-from dataclasses import dataclass
-from datetime import datetime
-from sqlalchemy import delete, func
-from sqlmodel import Session, select
-from typing import Optional
 
 
 class CommandValidationError(Exception):
@@ -61,7 +63,7 @@ class RoutineCommandService:
             else RuntimeCommandRequest.model_validate(command)
         )
         actor_payload = RuntimeActorRead.model_validate(actor)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         runtime = refresh_runtime_state(db, get_or_create_runtime_state(db, user_id))
         context = self._apply_command(db, user_id, runtime, command_payload, now)
@@ -105,7 +107,7 @@ class RoutineCommandService:
         Force stop any active runtime using the given routine and send events.
         Typically called before routine deletion.
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         # Find all runtimes that have this routine active
         runtimes = db.exec(
             select(RoutineRuntimeState).where(RoutineRuntimeState.active_routine_id == routine_id)
