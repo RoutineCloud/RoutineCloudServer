@@ -106,7 +106,6 @@ def build_runtime_state_read(db: Session, runtime: RoutineRuntimeState) -> Runti
         routine_started_at=runtime.routine_started_at,
         paused_at=runtime.paused_at,
         pause_duration=runtime.pause_duration,
-        updated_at=runtime.updated_at,
     )
 
 

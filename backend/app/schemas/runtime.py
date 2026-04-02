@@ -54,7 +54,6 @@ class RuntimeStateRead(RuntimeModel):
     routine_started_at: Optional[datetime] = None
     paused_at: Optional[datetime] = None
     pause_duration: int = 0
-    updated_at: Optional[datetime] = None
 
 
 class RuntimeActiveRead(RuntimeModel):

@@ -2666,12 +2666,6 @@
             "type": "integer",
             "title": "Pause Duration",
             "default": 0
-          },
-          "updated_at": {
-            "title": "Updated At",
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
           }
         },
         "type": "object",

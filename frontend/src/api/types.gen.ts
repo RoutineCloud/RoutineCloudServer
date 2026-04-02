@@ -369,10 +369,6 @@ export type RuntimeStateRead = {
      * Pause Duration
      */
     pause_duration?: number;
-    /**
-     * Updated At
-     */
-    updated_at?: string | null;
 };
 
 /**
