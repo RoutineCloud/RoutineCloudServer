@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import List, Optional, TYPE_CHECKING
 
-from sqlmodel import Field, Relationship
+from sqlmodel import Field, Relationship, DateTime
 
 from app.models.base import BaseModel
 
@@ -34,9 +34,15 @@ class RoutineRuntimeState(BaseModel, table=True):
     active_routine_id: Optional[int] = Field(default=None, foreign_key="routines.id")
     status: RuntimeStatus = Field(default=RuntimeStatus.IDLE)
     current_task_position: Optional[int] = None
-    task_started_at: Optional[datetime] = None
-    routine_started_at: Optional[datetime] = None
-    paused_at: Optional[datetime] = None
+    task_started_at: Optional[datetime] = Field(
+        default=None, sa_type=DateTime(timezone=True)
+    )
+    routine_started_at: Optional[datetime] = Field(
+        default=None, sa_type=DateTime(timezone=True)
+    )
+    paused_at: Optional[datetime] = Field(
+        default=None, sa_type=DateTime(timezone=True)
+    )
     pause_duration: int = 0
     active_routine: Optional["Routine"] = Relationship(
         back_populates="runtime_states",
@@ -61,6 +67,7 @@ class RoutineRuntimeState(BaseModel, table=True):
         started_at = self.routine_started_at
         if started_at is None:
             return changed
+
         elapsed_total_seconds = max(
             0,
             int((current_now - started_at).total_seconds()) - max(0, int(self.pause_duration or 0)),

@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Optional, List
 from typing import TYPE_CHECKING
 
-from sqlmodel import Field, Relationship
+from sqlmodel import Field, Relationship, DateTime
 
 from app.models.base import BaseModel
 from .routine_access import RoutineAccess
@@ -28,7 +28,9 @@ class User(BaseModel, table=True):
     username: Optional[str] = Field(default=None, index=True)
     is_active: bool = True
     is_superuser: bool = False
-    last_login: Optional[datetime] = None
+    last_login: Optional[datetime] = Field(
+        default=None, sa_type=DateTime(timezone=True)
+    )
     oidc_sub: str = Field(index=True, unique=True)
     friend_code: str = Field(default_factory=generate_friend_code, index=True, unique=True)
     profile_picture: Optional[str] = Field(default=None, description="Base64 encoded highly compressed image")
